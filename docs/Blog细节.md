@@ -554,17 +554,17 @@ CREATE TABLE `ms_article_tag`  (
 
 id ：评论id【主键】
 content：评论内容
-create_date：创建时间
+create_date：评论时间
 
-article_id：文章id【索引】
+article_id：评论文章id【索引】
 
-author_id：作者id
+author_id：谁评论的
 
-parent_id：?
+parent_id：盖楼功能对评论的评论进行回复
 
-to_uid：?
+to_uid：给谁评论
 
-level：?
+level：评论的是第几层（1级表示最上层的评论，2表示对评论的评论）
 
 ```sql
 CREATE TABLE `ms_comment`  (
@@ -581,7 +581,7 @@ CREATE TABLE `ms_comment`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1405209691876790275 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 ```
 
-
+> parent_id是分布式id，如果是long可能会越界，所以要改为bigint
 
 ### 日志类
 
@@ -1813,7 +1813,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     }
 
-    //"eop的作用是对应copyList，集合之间的copy分解成集合元素之间的copy
+    //copy的作用是对应copyList，集合之间的copy分解成集合元素之间的copy
     private ArticleVo copy(Article article,boolean isTag,boolean isAuthor){
         ArticleVo articleVo = new ArticleVo();
         //BeanUtils.copyProperties用法   https://blog.csdn.net/Mr_linjw/article/details/50236279
@@ -4186,7 +4186,7 @@ description：描述
 
 
 
-#### pojo类
+#### pojo
 
 ##### ArticleBody.java
 
@@ -4289,5 +4289,913 @@ src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
 
 ```java
 
+    @Override
+    public Result findArticleById(Long articleId) {
+        /**
+         * 1. 根据id查询 文章信息
+         * 2. 根据bodyId和categoryid 去做关联查询
+         * 3. 根据bodyId和tagid 去做关联查询(之前查过了)
+         */
+        Article article = this.articleMapper.selectById(articleId);
+        ArticleVo articleVo = copy(article, true, true,true,true);
+        //查看完文章了，新增阅读数，有没有问题呢？
+        //查看完文章之后，本应该直接返回数据了，这时候做了一个更新操作，更新时加写锁，阻塞其他的读操作，性能就会比较低
+        // 更新 增加了此次接口的 耗时 如果一旦更新出问题，不能影响 查看文章的操作
+        //线程池  可以把更新操作 扔到线程池中去执行，和主线程就不相关了
+       //threadService.updateArticleViewCount(articleMapper,article);
+        return Result.success(articleVo);
+    }
+
+
+//方法重载，方法名相同参数数量不同
+    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor) {
+        List<ArticleVo> articleVoList = new ArrayList<>();
+        for (Article record : records) {
+            articleVoList.add(copy(record,isTag,isAuthor,false,false));
+        }
+        return articleVoList;
+    }
+
+//方法重载
+    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor,boolean isBody) {
+        List<ArticleVo> articleVoList = new ArrayList<>();
+        for (Article record : records) {
+            articleVoList.add(copy(record,isTag,isAuthor,isBody,false));
+        }
+        return articleVoList;
+    }
+    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor,boolean isBody,boolean isCategory) {
+        List<ArticleVo> articleVoList = new ArrayList<>();
+        for (Article record : records) {
+            articleVoList.add(copy(record,isTag,isAuthor,isBody,isCategory));
+        }
+        return articleVoList;
+    }
+
+    @Autowired
+    private CategoryService categoryService;
+//带body信息，带category信息
+    private ArticleVo copy(Article article, boolean isTag, boolean isAuthor, boolean isBody,boolean isCategory){
+        ArticleVo articleVo = new ArticleVo();
+        articleVo.setId(String.valueOf(article.getId()));
+        BeanUtils.copyProperties(article,articleVo);
+        //时间没法copy因为是long型
+        articleVo.setCreateDate(new DateTime(article.getCreateDate()).toString("yyyy-MM-dd HH:mm"));
+        //并不是所有的接口 都需要标签 ，作者信息
+        if (isTag){
+            Long articleId = article.getId();
+            articleVo.setTags(tagService.findTagsByArticleId(articleId));
+        }
+        if (isAuthor){
+            Long authorId = article.getAuthorId();
+            articleVo.setAuthor(sysUserService.findUserById(authorId).getNickname());
+        }
+        if (isBody){
+            Long bodyId = article.getBodyId();
+            articleVo.setBody(findArticleBodyById(bodyId));
+        }
+        if (isCategory){
+            Long categoryId = article.getCategoryId();
+           //此处用了categoryService的服务
+            articleVo.setCategory(categoryService.findCategoryById(categoryId));
+        }
+        return articleVo;
+    }
+
+    @Autowired
+    private CategoryService categoryService;
+
+    private CategoryVo findCategory(Long categoryId) {
+        return categoryService.findCategoryById(categoryId);
+    }
+    //构建ArticleBodyMapper
+    @Autowired
+    private ArticleBodyMapper articleBodyMapper;
+
+    private ArticleBodyVo findArticleBodyById(Long bodyId) {
+        ArticleBody articleBody = articleBodyMapper.selectById(bodyId);
+        ArticleBodyVo articleBodyVo = new ArticleBodyVo();
+        articleBodyVo.setContent(articleBody.getContent());
+        return articleBodyVo;
+    }
+
+```
+
+> 此处用了categoryService的服务，没有放在acticleService中，是因为category和acticle不是必相关，应该将这的服务放在相应的类中（categoryService）
+
+##### CategoryService.java
+
+src/main/java/com/mszlu/blog/service/CategoryService.java
+
+```java
+public interface CategoryService {
+
+    CategoryVo findCategoryById(Long id);
+}
+```
+
+
+
+**CategoryServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/CategoryServiceImpl.java
+
+```java
+//注入spring 
+@Service
+public class CategoryServiceImpl implements CategoryService {
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    @Override
+    public CategoryVo findCategoryById(Long id){
+        Category category = categoryMapper.selectById(id);
+        CategoryVo categoryVo = new CategoryVo();
+        //因为category,categoryVo属性一样所以可以使用 BeanUtils.copyProperties
+        BeanUtils.copyProperties(category,categoryVo);
+        return categoryVo;
+    }
+}
+```
+
+
+
+#### Vo
+
+##### ArticleVo.java
+
+src/main/java/com/mszlu/blog/vo/ArticleVo.java
+
+```java
+package com.mszlu.blog.vo;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class ArticleVo {
+
+    private Long id;
+
+    private String title;
+
+    private String summary;
+
+    private int commentCounts;
+
+    private int viewCounts;
+
+    private int weight;
+    /**
+     * 创建时间
+     */
+    private String createDate;
+
+    private String author;
+
+    private ArticleBodyVo body;
+
+    private List<TagVo> tags;
+
+    private CategoryVo category;
+
+}
+
+```
+
+##### ArticleBodyVo.java
+
+src/main/java/com/mszlu/blog/vo/ArticleBodyVo.java
+
+```java
+package com.mszlu.blog.vo;
+
+import lombok.Data;
+
+@Data
+public class ArticleBodyVo {
+
+//内容
+    private String content;
+}
+```
+
+##### CategoryVo.java
+
+src/main/java/com/mszlu/blog/vo/CategoryVo.java
+
+```java
+package com.mszlu.blog.vo;
+
+import lombok.Data;
+
+@Data
+public class CategoryVo {
+
+//id，图标路径，图标名称
+    private Long id;
+
+    private String avatar;
+
+    private String categoryName;
+}
+```
+
+
+
+#### Dao
+
+##### ArticleBodyMapper.java
+
+src/main/java/com/mszlu/blog/dao/mapper/ArticleBodyMapper.java
+
+```java
+public interface ArticleBodyMapper extends BaseMapper<ArticleBody> {
+}
+```
+
+
+
+##### CategoryMapper.java
+
+src/main/java/com/mszlu/blog/dao/mapper/CategoryMapper.java
+
+```java
+public interface CategoryMapper extends BaseMapper<Category> {
+}
+```
+
+
+
+#### 测试
+
+![image-20220614005540000](appendix/Blog细节/image-20220614005540000.png)
+
+![image-20220614005438475](appendix\Blog细节\image-20220614005438475.png)
+
+
+
+### 更新阅读次数
+
+#### 为什么使用线程池
+
+```java
+//查看完文章了，新增阅读数，有没有问题呢？
+//查看完文章之后，本应该直接返回数据了，这时候做了一个更新操作，更新时加写锁，阻塞其他的读操作，性能就会比较低（没办法解决，增加阅读数必然要加锁）
+//更新增加了此次接口的耗时（考虑减少耗时）如果一旦更新出问题，不能影响查看操作
+
+想到了一个技术 线程池
+可以把更新操作扔到 线程池中去执行和主线程就不相关了
+问题：在SpringBoot中如何使用线程池
+```
+
+
+
+#### code
+
+##### 配置类
+
+###### ThreadPoolConfig.java
+
+src/main/java/com/mszlu/blog/config/ThreadPoolConfig.java
+
+做一个线程池的配置来开启线程池
+
+```java
+//https://www.jianshu.com/p/0b8443b1adc9   关于@Configuration和@Bean的用法和理解
+@Configuration
+@EnableAsync //开启多线程
+public class ThreadPoolConfig {
+
+    @Bean("taskExecutor")
+    public Executor asyncServiceExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        // 设置核心线程数
+        executor.setCorePoolSize(5);
+        // 设置最大线程数
+        executor.setMaxPoolSize(20);
+        //配置队列大小
+        executor.setQueueCapacity(Integer.MAX_VALUE);
+        // 设置线程活跃时间（秒）
+        executor.setKeepAliveSeconds(60);
+        // 设置默认线程名称
+        executor.setThreadNamePrefix("码神之路博客项目");
+        // 等待所有任务结束后再关闭线程池
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        //执行初始化
+        executor.initialize();
+        return executor;
+    }
+}
+```
+
+> @Configuration可理解为用spring的时候xml里面的<beans>标签。
+>
+> @Bean可理解为用spring的时候xml里面的<bean>标签。
+
+
+
+##### Service
+
+###### ThreadService.java
+
+src/main/java/com/mszlu/blog/service/ThreadService.java
+
+```java
+@Component
+public class ThreadService {
+    //期望此操作在线程池执行不会影响原有主线程
+    //对应ThreadPoolConfig.java中ThreadPoolConfig类下@Bean("taskExecutor")
+    @Async("taskExcutor")
+    public void updateArticleViewCount(ArticleMapper articleMapper, Article article) {
+		
+        //业务逻辑
+        Integer viewCounts = article.getViewCounts();
+        Article articleupdate = new Article();
+        articleupdate.setViewCounts(viewCounts+1);
+        LambdaQueryWrapper<Article> updatewrapper = new LambdaQueryWrapper<>();
+        //根据id更新
+        updatewrapper.eq(Article::getId ,article.getId());
+        //设置一个为了在多线程的环境下线程安全
+        //改之前再确认这个值有没有被其他线程抢先修改，类似于CAS操作 cas加自旋，加个循环就是cas
+        updatewrapper.eq(Article ::getViewCounts,viewCounts );
+        // update article set view_count=100 where view_count=99 and id =111
+        //实体类加更新条件
+        articleMapper.update(articleupdate,updatewrapper);
+        
+        //线程池
+        try {
+            //5s
+            Thread.sleep(5000);
+            System.out.println("更新完成了");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+```
+
+
+
+###### ArticleServiceImpl.java
+
+src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+
+    @Autowired
+    private ThreadService threadService;
+
+    @Override
+    public ArticleVo findArticleById(Long id) {
+        Article article = articleMapper.selectById(id);
+        //线程池
+        threadService.updateViewCount(articleMapper,article);
+        return copy(article,true,true,true,true);
+    }
+
+```
+
+
+
+#### 测试
+
+睡眠 ThredService中的方法 5秒，不会影响主线程的使用，即文章详情会很快的显示出来，不受影响
+
+
+
+#### Bug修正
+
+之前Article中的commentCounts，viewCounts，weight 字段为int，会造成更新阅读次数的时候，将其余两个字段设为初始值0
+mybatisplus在更新文章阅读次数的时候虽然只设立了articleUpdate.setviewsCounts(viewCounts+1),
+但是int默认基本数据类型为0，
+mybatisplus规则：但凡不是null就会生成到sql语句中进行更新。会出现
+![image-20220614013057064](appendix/Blog细节/image-20220614013057064.png)
+
+理想中应该是只有views_counts改变但是因为mybatisplus规则所以会出现这个现象
+所以**将int改为Integer**就不会出现这个问题。
+
+##### Pojo
+
+###### Article.java
+
+src/main/java/com/mszlu/blog/dao/pojo/Article.java
+
+```java
+package com.mszlu.blog.dao.pojo;
+
+import lombok.Data;
+
+@Data
+public class Article {
+
+    public static final int Article_TOP = 1;
+
+    public static final int Article_Common = 0;
+
+    private Long id;
+
+    private String title;
+
+    private String summary;
+
+    private Integer commentCounts;
+
+    private Integer viewCounts;
+
+    /**
+     * 作者id
+     */
+    private Long authorId;
+    /**
+     * 内容id
+     */
+    private Long bodyId;
+    /**
+     *类别id
+     */
+    private Long categoryId;
+
+    /**
+     * 置顶
+     */
+    //同时也注意不能给默认值
+    private Integer weight;
+
+
+    /**
+     * 创建时间
+     */
+    private Long createDate;
+}
+
+```
+
+
+
+### 评论列表
+
+#### 接口说明
+
+接口url：/comments/article/{id}
+
+请求方式：GET
+
+请求参数：
+
+| 参数名称 | 参数类型 | 说明               |
+| -------- | -------- | ------------------ |
+| id       | long     | 文章id（路径参数） |
+
+返回数据：
+
+```json
+{
+    "success": true,
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "id": 53,
+            "author": {
+                "nickname": "李四",
+                "avatar": "http://localhost:8080/static/img/logo.b3a48c0.png",
+                "id": 1
+            },
+            "content": "写的好",
+            "childrens": [
+                {
+                    "id": 54,
+                    "author": {
+                        "nickname": "李四",
+                        "avatar": "http://localhost:8080/static/img/logo.b3a48c0.png",
+                        "id": 1
+                    },
+                    "content": "111",
+                    "childrens": [],
+                    "createDate": "1973-11-26 08:52",
+                    "level": 2,
+                    "toUser": {
+                        "nickname": "李四",
+                        "avatar": "http://localhost:8080/static/img/logo.b3a48c0.png",
+                        "id": 1
+                    }
+                }
+            ],
+            "createDate": "1973-11-27 09:53",
+            "level": 1,
+            "toUser": null
+        }
+    ]
+}
+
+```
+
+
+
+#### 涉及到的数据库表
+
+##### ms_comment
+
+id ：评论id【主键】
+content：评论内容
+create_date：评论时间
+
+article_id：评论文章id【索引】
+
+author_id：谁评论的
+
+parent_id：盖楼功能对评论的评论进行回复(目前只做两级)
+
+to_uid：给谁评论（评论的评论）
+
+level：评论的是第几层（1级表示最上层的评论，2表示对评论的评论）
+
+
+
+#### Code
+
+##### pojo
+
+###### Comment.java
+
+src/main/java/com/mszlu/blog/dao/pojo/Comment.java
+
+```java
+@Data
+public class Comment {
+
+    private Long id;
+
+    private String content;
+
+    private Long createDate;
+
+    private Long articleId;
+
+    private Long authorId;
+
+    private Long parentId;
+
+    private Long toUid;
+
+    private Integer level;
+}
+```
+
+
+
+##### Controller
+
+###### CommentsController.java
+
+src/main/java/com/mszlu/blog/controller/CommentsController.java
+
+```java
+@RestController
+@RequestMapping("comments")
+public class CommentsController {
+
+    @Autowired
+    private CommentsService commentsService;
+
+    @GetMapping("article/{id}")
+    public Result comments(@PathVariable("id") Long articleId){
+
+        return commentsService.commentsByArticleId(articleId);
+
+    }
+}
+```
+
+
+
+##### Service
+
+###### CommentsService.java
+
+src/main/java/com/mszlu/blog/service/CommentsService.java
+
+```java
+public interface CommentsService {
+
+    /**
+     * 根据文章id查询所有的评论列表
+     * @param id
+     * @return
+     */
+    Result commentsByArticleId(Long id);
+}
+```
+
+**CommentsServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/CommentsServiceImpl.java
+
+```java
+@Service
+public class CommentsServiceImpl implements CommentsService {
+
+    @Autowired
+    private CommentMapper commentMapper;
+    @Autowired
+    private SysUserService sysUserService;
+    @Override
+    public Result commentsByArticleId(Long articleId) {
+            /**
+         * 1. 根据文章id 查询 评论列表 从 comment 表中查询
+         * 2. 根据作者的id 查询作者的信息
+         * 3. 判断 如果 level = 1 要去查询它有没有子评论
+         * 4. 如果有 根据评论id 进行查询 （parent_id）
+         */
+        LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
+        //根据文章id进行查询
+        queryWrapper.eq(Comment::getArticleId,id );
+        //根据层级关系进行查询
+        queryWrapper.eq(Comment::getLevel,1 );
+        List<Comment> comments = commentMapper.selectList(queryWrapper);
+        
+        List<CommentVo> commentVoList = copyList(comments);
+        return Result.success(commentVoList);
+    }
+    //对list表中的comment进行判断
+    public List<CommentVo> copyList(List<Comment> commentList){
+        List<CommentVo> commentVoList = new ArrayList<>();
+        for (Comment comment : commentList) {
+            commentVoList.add(copy(comment));
+        }
+        return commentVoList;
+    }
+
+    private CommentVo copy(Comment comment) {
+        CommentVo commentVo = new CommentVo();
+        // 相同属性copy
+        //相当于setXX
+        BeanUtils.copyProperties(comment,commentVo);
+        commentVo.setId(String.valueOf(comment.getId()));
+        //作者信息
+        Long authorId = comment.getAuthorId();
+        UserVo userVo = this.sysUserService.findUserVoById(authorId);
+        commentVo.setAuthor(userVo);
+        //子评论
+        Integer level = comment.getLevel();
+        if (1 == level){
+            Long id = comment.getId();
+            List<CommentVo> commentVoList = findCommentsByParentId(id);
+            commentVo.setChildrens(commentVoList);
+        }
+        //to User 给谁评论
+        if (level > 1){
+            Long toUid = comment.getToUid();
+            UserVo toUserVo = this.sysUserService.findUserVoById(toUid);
+            commentVo.setToUser(toUserVo);
+        }
+        return commentVo;
+    }
+
+    private List<CommentVo> findCommentsByParentId(Long id) {
+        LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Comment::getParentId,id);
+        queryWrapper.eq(Comment::getLevel,2);
+        List<Comment> comments = this.commentMapper.selectList(queryWrapper);
+        return copyList(comments);
+    }
+}
+
+```
+
+
+
+###### SysUserService.java
+
+src/main/java/com/mszlu/blog/service/SysUserService.java
+
+在SysUserService中提供 查询用户信息的服务
+
+```java
+  UserVo findUserVoById(Long id);
+```
+
+**SysUserServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/SysUserServiceImpl.java
+
+```java
+
+    @Override
+    public UserVo findUserVoById(Long id) {
+        SysUser sysUser = sysUserMapper.selectById(id);
+        if (sysUser == null){
+            sysUser = new SysUser();
+            sysUser.setId(1L);
+            sysUser.setAvatar("/static/img/logo.b3a48c0.png");
+            sysUser.setNickname("码神之路");
+        }
+        UserVo userVo = new UserVo();
+        userVo.setAvatar(sysUser.getAvatar());
+        userVo.setNickname(sysUser.getNickname());
+        userVo.setId(sysUser.getId());
+        return userVo;
+    }
+```
+
+
+
+##### Vo
+
+###### CommentVo.java
+
+src/main/java/com/mszlu/blog/vo/CommentVo.java
+
+```java
+@Data
+public class CommentVo  {
+
+    private Long id;
+
+    private UserVo author;
+
+    private String content;
+
+    private List<CommentVo> childrens;
+
+    private String createDate;
+
+    private Integer level;
+
+    private UserVo toUser;
+}
+```
+
+
+
+###### UserVo.java
+
+src/main/java/com/mszlu/blog/vo/UserVo.java
+
+```java
+@Data
+public class UserVo {
+
+    private String nickname;
+
+    private String avatar;
+
+    private Long id;
+}
+```
+
+
+
+#### 测试
+
+![image-20220614020615569](appendix/Blog细节/image-20220614020615569.png)
+
+### 评论
+
+#### 接口说明
+
+接口url：/comments/create/change
+
+请求方式：POST
+
+请求参数：
+
+| 参数名称  | 参数类型 | 说明           |
+| --------- | -------- | -------------- |
+| articleId | long     | 文章id         |
+| content   | string   | 评论内容       |
+| parent    | long     | 父评论id       |
+| toUserId  | long     | 被评论的用户id |
+
+返回数据：
+
+```json
+{
+    "success": true,
+    "code": 200,
+    "msg": "success",
+    "data": null
+}
+```
+
+
+
+#### code
+
+##### 加入拦截器配置
+
+###### WebMVCConfig.java
+
+src/main/java/com/mszlu/blog/config/WebMVCConfig.java
+
+```java
+@Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //拦截test接口，后续实际遇到需要拦截的接口时，在配置为真正的拦截接口
+        registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/test").addPathPatterns("/comments/create/change");
+    }
+```
+
+
+
+##### Controller
+
+**CommentParam.java**
+
+src/main/java/com/mszlu/blog/vo/params/CommentParam.java
+
+构建评论参数对象：
+
+```java
+@Data
+public class CommentParam {
+
+    private Long articleId;
+
+    private String content;
+
+    private Long parent;
+
+    private Long toUserId;
+}
+```
+
+
+
+###### CommentsController.java
+
+src/main/java/com/mszlu/blog/controller/CommentsController.java
+
+```java
+
+    @PostMapping("create/change")
+    public Result comment(@RequestBody CommentParam commentParam){
+        return commentsService.comment(commentParam);
+    }
+```
+
+
+
+##### Service
+
+###### CommentsService.java
+
+src/main/java/com/mszlu/blog/service/CommentsService.java
+
+```java
+Result comment(CommentParam commentParam);
+```
+
+
+
+**CommentsServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/CommentsServiceImpl.java
+
+```java
+ @Override
+    public Result comment(CommentParam commentParam) {
+    //拿到当前用户 threadlocal
+        SysUser sysUser = UserThreadLocal.get();
+        Comment comment = new Comment();
+        comment.setArticleId(commentParam.getArticleId());
+        comment.setAuthorId(sysUser.getId());
+        comment.setContent(commentParam.getContent());
+        comment.setCreateDate(System.currentTimeMillis());
+        Long parent = commentParam.getParent();
+        if (parent == null || parent == 0) {
+            comment.setLevel(1);
+        }else{
+            comment.setLevel(2);
+        }
+        //如果是空，parent就是0
+        comment.setParentId(parent == null ? 0 : parent);
+        Long toUserId = commentParam.getToUserId();
+        comment.setToUid(toUserId == null ? 0 : toUserId);
+        this.commentMapper.insert(comment);
+        return Result.success(null);
+    }
+
+```
+
+
+
+##### Bug修正
+
+###### CommentVo.java
+
+src/main/java/com/mszlu/blog/vo/CommentVo.java
+
+分布式id 比较长，传到前端 会有精度损失，必须转为string类型 进行传输，就不会有问题了，序列化
+
+```java
+public class CommentVo  {
+    //防止前端 精度损失 把id转为string
+//    @JsonSerialize(using = ToStringSerializer.class)
+    private String id;
 ```
 
