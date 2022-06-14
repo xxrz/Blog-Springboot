@@ -1547,7 +1547,7 @@ public class CategoryVo {
 
 请求方式：POST
 
-请求参数：
+请求参数：【前端-》后端】
 
 | 参数名称 | 参数类型 | 说明           |
 | -------- | -------- | -------------- |
@@ -1557,7 +1557,7 @@ public class CategoryVo {
 
 功能：期望首页显示分页的文章列表
 
-后端返回数据：
+返回数据：【后端-》前端】
 
 是我们自己定义的json格式
 
@@ -2042,7 +2042,7 @@ blog\blog-api\blog-api\src\main\java\com\mszlu\blog\vo
 
 params\PageParams.java
 
-因为有两个参数，所以需要使用PageParams，【Vo是后端传递给前端封装的数据结构】
+因为有两个参数，所以需要使用PageParams，【Vo是后端传递给前端封装的数据结构,Params是对前端参数的封装】
 
 ```java
 package com.mszlu.blog.vo.params;
@@ -4042,7 +4042,11 @@ public class UserThreadLocal {
 }
 ```
 
-
+> ThreadLocal为什么要声明为static final？
+>
+> static：如果将ThreadLocal声明为static，则此ThreadLocal变量(以及ThreadLocal的引用)将由拥有的class的所有Objects共享。
+>
+> final：不会更改ThreadLocal实例，所以只能通过ThreadLocal#set(T value)更改引用的Object（key-value）。
 
 ##### LoginInterceptor.java
 
@@ -5199,3 +5203,496 @@ public class CommentVo  {
     private String id;
 ```
 
+
+
+### 写文章
+
+![image-20220615011914534](appendix/Blog细节/image-20220615011914534.png)
+
+写文章需要三个接口：
+
+1. 获取所有文章类别
+2. 获取所有标签
+3. 发布文章
+
+文本编辑器是不用后端写的
+
+
+
+### 所有文章分类
+
+#### 接口说明
+
+接口url：/categorys
+
+请求方式：GET
+
+请求参数：无
+
+返回数据:
+
+```json
+{
+    "success":true,
+ 	"code":200,
+    "msg":"success",
+    "data":
+    [
+        {"id":1,"avatar":"/category/front.png","categoryName":"前端"},	
+        {"id":2,"avatar":"/category/back.png","categoryName":"后端"},
+        {"id":3,"avatar":"/category/lift.jpg","categoryName":"生活"},
+        {"id":4,"avatar":"/category/database.png","categoryName":"数据库"},
+        {"id":5,"avatar":"/category/language.png","categoryName":"编程语言"}
+    ]
+}
+
+```
+
+
+
+#### code
+
+##### Controller
+
+###### CategoryController.java
+
+src/main/java/com/mszlu/blog/controller/CategoryController.java
+
+```java
+@RestController
+@RequestMapping("categorys")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @GetMapping
+    public Result listCategory() {
+        return categoryService.findAll();
+    }
+}
+```
+
+
+
+##### Serivice
+
+###### CategoryServiceImpl.java
+
+src/main/java/com/mszlu/blog/service/impl/CategoryServiceImpl.java
+
+```java
+
+//id不一致要重新设立
+    public CategoryVo copy(Category category){
+        CategoryVo categoryVo = new CategoryVo();
+        BeanUtils.copyProperties(category,categoryVo);
+        //id不一致要重新设立
+        categoryVo.setId(String.valueOf(category.getId()));
+        return categoryVo;
+    }
+    public List<CategoryVo> copyList(List<Category> categoryList){
+        List<CategoryVo> categoryVoList = new ArrayList<>();
+        for (Category category : categoryList) {
+            categoryVoList.add(copy(category));
+        }
+        return categoryVoList;
+    }
+
+    @Override
+    public Result findAll() {
+    // 没有任何参数，所有一个空的LambdaQueryWrapper即可
+        List<Category> categories = this.categoryMapper.selectList(new LambdaQueryWrapper<>());
+         //页面交互的对象
+        return Result.success(copyList(categories));
+    }
+
+```
+
+
+
+### 所有文章标签
+
+#### 接口说明
+
+接口url：/tags
+
+请求方式：GET
+
+请求参数：无
+
+返回数据：
+
+```json
+{
+    "success": true,
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "id": 5,
+            "tagName": "springboot"
+        },
+        {
+            "id": 6,
+            "tagName": "spring"
+        },
+        {
+            "id": 7,
+            "tagName": "springmvc"
+        },
+        {
+            "id": 8,
+            "tagName": "11"
+        }
+    ]
+}
+```
+
+
+
+#### code
+
+##### Controller
+
+###### TagsController.java
+
+src/main/java/com/mszlu/blog/controller/TagsController.java
+
+```java
+@RestController
+@RequestMapping("tags")
+public class CategoryController {
+
+    @Autowired
+    private TagService tagService;
+
+    @GetMapping
+    public Result findAll() {
+        return tagService.findAll();
+    }
+}
+```
+
+
+
+##### Service
+
+###### TagService.java
+
+src/main/java/com/mszlu/blog/service/TagService.java
+
+```java
+    /**
+     * 查询所有文章标签
+     * @return
+     */
+    Result findAll();
+
+```
+
+**TagServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/TagServiceImpl.java
+
+```java
+	@Override
+    public Result findAll() {
+        List<Tag> tags = this.tagMapper.selectList(new LambdaQueryWrapper<>());
+        return Result.success(copyList(tags));
+    }
+```
+
+
+
+### 发布文章
+
+构建Article对象，写入数据库
+
+#### 接口说明
+
+请求内容：
+
+object（{content: “ww”, contentHtml: “ww↵”}），是因为本身为markdown的编辑器
+
+> content是markdown编辑器，contentHtml是预览后的html页面
+
+id指的是文章id
+
+![image-20220615011000892](appendix/Blog细节/image-20220615011000892.png)
+
+接口url：/articles/publish
+
+请求方式：POST
+
+请求参数：
+
+![image-20220615011105163](appendix/Blog细节/image-20220615011105163.png)
+
+返回数据：
+
+```json
+{
+    "success": true,
+    "code": 200,
+    "msg": "success",
+    "data": {"id":12232323}
+}
+```
+
+
+
+#### code
+
+##### controller
+
+###### ArticleController.java
+
+src/main/java/com/mszlu/blog/controller/ArticleController.java
+
+```java
+    //  @RequestBody主要用来接收前端传递给后端的json字符串中的数据的(请求体中的数据的)；
+    //  而最常用的使用请求体传参的无疑是POST请求了，所以使用@RequestBody接收数据时，一般都用POST方式进行提交。
+	@PostMapping("publish")
+    public Result publish(@RequestBody ArticleParam articleParam){
+        return articleService.publish(articleParam);
+    }
+
+```
+
+
+
+###### ArticleParam.java
+
+我们需要建立参数对象需要用于接收前端传过来的数据
+ src/main/java/com/mszlu/blog/vo/params/ArticleParam.java
+
+```java
+
+@Data
+public class ArticleParam {
+
+    private Long id;
+
+    private ArticleBodyParam body;
+
+    private CategoryVo category;
+
+    private String summary;
+
+    private List<TagVo> tags;
+
+    private String title;
+}
+
+
+```
+
+
+
+###### ArticleBodyParam.java
+
+src/main/java/com/mszlu/blog/vo/params/ArticleBodyParam.java
+
+```java
+@Data
+public class ArticleBodyParam {
+
+    private String content;
+
+    private String contentHtml;
+
+}
+```
+
+
+
+##### Service
+
+###### ArticleService.java
+
+src/main/java/com/mszlu/blog/service/ArticleService.java
+
+```java
+    /**
+     * 文章发布服务
+     * @param articleParam
+     * @return
+     */
+    Result publish(ArticleParam articleParam);
+```
+
+**ArticleServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+@Override
+    @Transactional
+    public Result publish(ArticleParam articleParam) {
+    //注意想要拿到UserThreadLocal数据必须将接口加入拦截器，因为前面threadlocal是在拦截器中实现的
+        SysUser sysUser = UserThreadLocal.get();
+
+        /**
+         * 1. 发布文章 目的 构建Article对象
+         * 2. 作者id  当前的登录用户
+         * 3. 标签  要将标签加入到 关联列表当中
+         * 4. body 内容存储 article bodyId
+         */
+        Article article = new Article();
+        article.setAuthorId(sysUser.getId());
+        article.setCategoryId(articleParam.getCategory().getId());
+        article.setCreateDate(System.currentTimeMillis());
+        article.setCommentCounts(0);
+        article.setSummary(articleParam.getSummary());
+        article.setTitle(articleParam.getTitle());
+        article.setViewCounts(0);
+        article.setWeight(Article.Article_Common);
+        article.setBodyId(-1L);
+        //插入之后 会生成一个文章id（因为新建的文章没有文章id所以要insert一下
+        //官网解释："insart后主键会自动'set到实体的ID字段。所以你只需要"getid()就好
+//        利用主键自增，mp的insert操作后id值会回到参数对象中
+        //https://blog.csdn.net/HSJ0170/article/details/107982866
+        this.articleMapper.insert(article);
+
+        //tags
+        List<TagVo> tags = articleParam.getTags();
+        if (tags != null) {
+            for (TagVo tag : tags) {
+                ArticleTag articleTag = new ArticleTag();
+                articleTag.setArticleId(article.getId());
+                articleTag.setTagId(tag.getId());
+               
+            
+ //往数据库里写
+                this.articleTagMapper.insert(articleTag);
+            }
+        }
+         //body
+        ArticleBody articleBody = new ArticleBody();
+        articleBody.setContent(articleParam.getBody().getContent());
+        articleBody.setContentHtml(articleParam.getBody().getContentHtml());
+        articleBody.setArticleId(article.getId());
+        articleBodyMapper.insert(articleBody);
+//插入完之后再给一个id
+        
+        article.setBodyId(articleBody.getId());
+         //MybatisPlus中的save方法什么时候执行insert，什么时候执行update
+        // https://www.cxyzjd.com/article/Horse7/103868144
+       //只有当更改数据库时才插入或者更新，一般查询就可以了
+        articleMapper.updateById(article);
+        
+        ArticleVo articleVo = new ArticleVo();
+        articleVo.setId(article.getId());
+        return Result.success(articleVo);
+    }
+
+```
+
+> 注意想要拿到UserThreadLocal数据必须将接口加入拦截器，因为前面threadlocal是在拦截器中实现的
+
+
+
+###### WebMVCConfig.java
+
+src/main/java/com/mszlu/blog/config/WebMVCConfig.java
+
+当然登录拦截器中，需要加入发布文章的配置：
+
+```java
+ @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //拦截test接口，后续实际遇到需要拦截的接口时，在配置为真正的拦截接口
+        registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/test")
+                .addPathPatterns("/comments/create/change")
+                .addPathPatterns("/articles/publish");
+    }
+
+```
+
+
+
+##### dao
+
+###### ArticleTagMapper.java
+
+src/main/java/com/mszlu/blog/dao/mapper/ArticleTagMapper.java
+
+```java
+public interface ArticleTagMapper  extends BaseMapper<ArticleTag> {
+}
+```
+
+###### ArticleBodyMapper.java
+
+src/main/java/com/mszlu/blog/dao/mapper/ArticleBodyMapper.java
+
+```java
+public interface ArticleBodyMapper extends BaseMapper<ArticleBody> {
+}
+```
+
+
+
+##### vo
+
+###### ArticleVo.java
+
+src/main/java/com/mszlu/blog/vo/ArticleVo.java
+
+```java
+@Data
+public class ArticleVo {
+	//一定要记得加 要不然 会出现精度损失
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long id;
+
+    private String title;
+
+    private String summary;
+
+    private Integer commentCounts;
+
+    private Integer viewCounts;
+
+    private Integer weight;
+    /**
+     * 创建时间
+     */
+    private String createDate;
+
+    private String author;
+
+    private ArticleBodyVo body;
+
+    private List<TagVo> tags;
+
+    private CategoryVo category;
+
+}
+```
+
+
+
+##### pojo
+
+###### ArticleTag.java
+
+src/main/java/com/mszlu/blog/dao/pojo/ArticleTag.java
+
+```java
+@Data
+public class ArticleTag {
+
+    private Long id;
+
+    private Long articleId;
+
+    private Long tagId;
+}
+```
+
+
+
+#### 测试
