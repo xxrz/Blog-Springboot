@@ -22,6 +22,8 @@
 
 ## 后端
 
+### blog-api
+
 redis：启动，打开redis-server.exe
 
 mysql：修改账号密码
@@ -30,3 +32,23 @@ mysql：修改账号密码
 
 
 
+### blog-admin
+
+运行AdminApp.java
+
+访问：http://localhost:8889/pages/main.html
+
+如不想登录需要在pom.xml中，注释
+
+```xml
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-security</artifactId>-->
+<!--        </dependency>-->
+```
+
+并更新maven
+
+然后注释相关的java代码
+
+即可访问

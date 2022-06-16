@@ -26,6 +26,7 @@
 <body class="hold-transition skin-purple sidebar-mini">
     <div id="app">
         <el-container>
+            <!--头-->
             <el-header  class="main-header" style="height:70px;">
                 <nav class="navbar navbar-static-top" :class=''>
                     <!-- Logo -->
@@ -54,15 +55,20 @@
 
             <el-container>
 
+                <!--侧边栏-->
+
                 <el-aside width="200px">
                     <el-menu>
+                        <!--用vue的v-for的形式绑定了一个数据menuList-->
                         <el-submenu v-for="menu in menuList" :index="menu.path">
                             <template slot="title">
                                 <i class="fa" :class="menu.icon"></i>
                                 {{menu.title}}
                             </template>
+                            <!--二级菜单-->
                             <template v-for="child in menu.children">
                                 <el-menu-item :index="child.path">
+                                    <!--链接linkUrl，同时targe建立映射-->
                                     <a :href="child.linkUrl" target="right">{{child.title}}</a>
                                 </el-menu-item>
                             </template>
@@ -70,7 +76,10 @@
                     </el-menu>
                 </el-aside>
 
+                <!--主区域-->
+
                 <el-container>
+                    <!--linkurl显示到这里，因为targe和name做了映射-->
                     <iframe name="right" class="el-main" src="permission.html" width="100%" height="800px" frameborder="0"></iframe>
                 </el-container>
 
@@ -83,6 +92,7 @@
 <script src="../js/vue.js"></script>
 <script src="../plugins/elementui/index.js"></script>
 <script type="text/javascript" src="../js/jquery.min.js"></script>
+<!-- ajxa请求-->
 <script src="../js/axios-0.18.0.js"></script>
 <script>
     new Vue({
@@ -97,6 +107,7 @@
         created() {
             this.getUserInfo();
         },
+        <!--链接-->
         data:{
             username:"",
             menuList:[
@@ -114,6 +125,7 @@
                         {
                             "path": "/1-2",
                             "title": "权限管理",
+                            <!--链接对应的html-->
                             "linkUrl":"permission.html",
                             "children":[]
                         },

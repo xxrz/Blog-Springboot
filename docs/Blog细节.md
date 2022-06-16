@@ -1,4 +1,4 @@
-# 后端工程搭建
+# BLOG-API
 
 ## 新建maven工程
 
@@ -1535,13 +1535,13 @@ public class CategoryVo {
 
 ### 首页页面
 
-#### 文章列表功能
+### 文章列表功能
 
 在首页分页显示文章列表
 
 
 
-##### 接口说明
+#### 接口说明
 
 前端接口url：/articles
 
@@ -1690,39 +1690,39 @@ public class Result {
 
 
 
-##### 代码
+#### 代码
 
 【设计层面的思路】
 
 一般是从dao(mapper)开始设计，到service，再到Controller
 
-###### table
+##### table
 
-**ms_article**
+###### ms_article
 
-**ms_tag**
+###### **ms_tag**
 
-**ms_sys_user**
-
-
-
-###### pojo
-
-**Article.java**
-
-**Tag.java**
-
-**SysUser.java**
+###### **ms_sys_user**
 
 
 
-###### dao
+##### pojo
 
-**ArticleMapper.java**
+###### **Article.java**
+
+###### **Tag.java**
+
+###### **SysUser.java**
+
+
+
+##### dao
+
+###### **ArticleMapper.java**
 
 自动关联
 
-**TagMapper.java**
+###### **TagMapper.java**
 
 ```java
 public interface TagMapper extends BaseMapper<Tag> {
@@ -1731,11 +1731,11 @@ public interface TagMapper extends BaseMapper<Tag> {
 }
 ```
 
-**SysUserMapper.java**
+###### **SysUserMapper.java**
 
 
 
-###### service
+##### service
 
 【service层不仅可以调dao层，也可以调sevice层，充当service实现类的属性】
 
@@ -1743,7 +1743,7 @@ public interface TagMapper extends BaseMapper<Tag> {
 
 **文章：Article**
 
-**ArticleService.java**
+###### **ArticleService.java**
 
 ```java
 public interface ArticleService {
@@ -2005,9 +2005,9 @@ public class SysUserServiceImpl implements SysUserService {
 
 
 
-###### controller
+##### controller
 
-**ArticleController.java**
+###### **ArticleController.java**
 
 ```java
 @RestController
@@ -2034,11 +2034,13 @@ public class ArticleController {
 
 
 
-###### Vo
+##### Vo
 
 blog\blog-api\blog-api\src\main\java\com\mszlu\blog\vo
 
-**页面参数Vo：PageParams.java**
+**页面参数Vo：**
+
+###### **PageParams.java**
 
 params\PageParams.java
 
@@ -2127,19 +2129,19 @@ public class TagVo {
 
 
 
-##### 测试
+#### 测试
 
 ![image-20220607213706714](appendix\Blog细节\image-20220607213706714.png)
 
 
 
-#### 最热标签功能
+### 最热标签功能
 
 我们期望点击标签关于文章的所有列表都显示出来
 
 
 
-##### 接口说明
+#### 接口说明
 
 接口url：/tags/hot
 
@@ -2165,7 +2167,7 @@ public class TagVo {
 
 
 
-##### 代码
+#### 代码
 
 【编写层面的思路】
 
@@ -2173,9 +2175,9 @@ public class TagVo {
 
 
 
-###### controller
+##### controller
 
-**TagsController .java**
+###### **TagsController .java**
 
 ```java
 //@RestController代表我们返回的是json数据,@RequestMapping("tags")表示路径映射
@@ -2197,17 +2199,17 @@ public class TagsController {
 
 
 
-###### Vo
+##### Vo
 
 vo表示处理后端拿到的数据给前端
 
-**TagVo.java**
+###### **TagVo.java**
 
 
 
-###### Service
+##### Service
 
-**TagsService.java**
+###### **TagsService.java**
 
 ```java
 public interface TagsService {
@@ -2263,9 +2265,9 @@ public class TagsServiceImpl implements TagsService {
 
 
 
-###### Dao
+##### Dao
 
-**TagMapper.java**
+###### **TagMapper.java**
 
 ```java
 public interface TagMapper extends BaseMapper<Tag> {
@@ -2328,19 +2330,19 @@ public interface TagMapper extends BaseMapper<Tag> {
 
 
 
-##### 测试
+#### 测试
 
 ![image-20220607232320631](appendix\Blog细节\image-20220607232320631.png)
 
 
 
-#### controller层统一异常处理功能
+### controller层统一异常处理功能
 
 不管是controller层还是service，dao层，都有可能报异常，如果是预料中的异常，可以直接捕获处理，如果是意料之外的异常，需要统一进行处理，进行记录，并给用户提示相对比较友好的信息。
 
-##### 代码
+#### 代码
 
-**AllExceptionHandler.java**
+##### **AllExceptionHandler.java**
 
 com\mszlu\blog\handler\AllExceptionHandler.java
 
@@ -2375,13 +2377,13 @@ public class AllExceptionHandler {
 
 
 
-#### 最热文章功能
+### 最热文章功能
 
 在ms_article表中的view_counts表示浏览数量，越多表示越火热
 
 ![image-20220607233840640](appendix\Blog细节\image-20220607233840640.png)
 
-##### 接口说明
+#### 接口说明
 
 接口url：/articles/hot
 
@@ -2419,11 +2421,11 @@ public class AllExceptionHandler {
 
 
 
-##### 代码
+#### 代码
 
-###### Controller
+##### Controller
 
-**ArticleController.java**
+###### **ArticleController.java**
 
 ```java
     /**
@@ -2440,9 +2442,9 @@ public class AllExceptionHandler {
 
 
 
-###### Service
+##### Service
 
-**ArticleService.java**
+###### **ArticleService.java**
 
 ```java
 public interface ArticleService {
@@ -2487,7 +2489,7 @@ public interface ArticleService {
 
 
 
-##### 测试
+#### 测试
 
 ![image-20220607234614949](appendix\Blog细节\image-20220607234614949.png)
 
@@ -2495,7 +2497,7 @@ public interface ArticleService {
 
 
 
-#### 最新文章功能
+### 最新文章功能
 
 和最热文章非常类似，是根据最新创建时间来选择
 
@@ -2503,7 +2505,7 @@ public interface ArticleService {
 
 
 
-##### 接口说明
+#### 接口说明
 
 接口url：/articles/new
 
@@ -2540,11 +2542,11 @@ public interface ArticleService {
 
 
 
-##### 代码
+#### 代码
 
-###### Controller
+##### Controller
 
-**ArticleController.java**
+###### **ArticleController.java**
 
 ```java
  /**
@@ -2561,9 +2563,9 @@ public interface ArticleService {
 
 
 
-###### Service
+##### Service
 
-**ArticleService.java**
+###### **ArticleService.java**
 
 ```java
 public interface ArticleService {
@@ -2598,19 +2600,19 @@ public interface ArticleService {
 
 
 
-##### 测试
+#### 测试
 
 ![image-20220608000401584](appendix\Blog细节\image-20220608000401584.png)
 
 
 
-#### 文章归档功能
+### 文章归档功能
 
 根据创建文章时间进行归档：某年某月发表多少篇文章
 
 
 
-##### 接口说明
+#### 接口说明
 
 接口url：/articles/listArchives
 
@@ -2654,15 +2656,15 @@ FROM ms_article GROUP BY YEAR,MONTH;
 
  ![image-20220608002241185](appendix\Blog细节\image-20220608002241185.png) ![image-20220608002158989](appendix\Blog细节\image-20220608002158989.png)
 
-##### 代码
+#### 代码
 
-###### dos
+##### dos
 
 blog\blog-api\blog-api\src\main\java\com\mszlu\blog\dao\dos
 
 由于返回数据data中的属性并不真实存在于数据库，而是通过构造sql查询后的结果，故创建dos，简单理解是不需要持久化的数据
 
-**Archives.java**
+###### **Archives.java**
 
 ```java
 @Data
@@ -2678,9 +2680,9 @@ public class Archives {
 
 
 
-###### controller
+##### controller
 
-**ArticleController.java**
+###### **ArticleController.java**
 
 ```java
   /**
@@ -2696,9 +2698,9 @@ public class Archives {
 
 
 
-###### Service
+##### Service
 
-**ArticleService.java**
+###### **ArticleService.java**
 
 ```java
 public interface ArticleService {
@@ -2734,9 +2736,9 @@ public Result listArchives() {
 
 
 
-###### Dao
+##### Dao
 
-**ArticleMapper.java**
+###### **ArticleMapper.java**
 
 ```java
 public interface ArticleMapper extends BaseMapper<Article> {
@@ -2771,13 +2773,13 @@ public interface ArticleMapper extends BaseMapper<Article> {
 
 
 
-##### 测试
+#### 测试
 
 ![image-20220608000740080](appendix\Blog细节\image-20220608000740080.png)
 
 
 
-### 登录页面
+### *登录
 
 #### 接口说明
 
@@ -3923,7 +3925,7 @@ LoginInterceptor.java返回true进行放行，test这个接口就可以正常访
 
 
 
-### ThreadLocal保存用户信息
+### *ThreadLocal保存用户信息
 
 redis中只放了token我们希望直接获取用户信息
 
@@ -5696,3 +5698,2436 @@ public class ArticleTag {
 
 
 #### 测试
+
+
+
+### *AOP方式实现日志
+
+IOC是spring的两大核心概念之一，IOC给我们提供了一个IOCbean容器，这个容器会帮我们自动去创建对象，不需要我们手动创建，IOC实现创建的通过DI（Dependency Injection 依赖注入），我们可以通过写Java注解代码或者是XML配置方式，把我们想要注入对象所依赖的一些其他的bean，自动的注入进去，他是通过byName或byType类型的方式来帮助我们注入。正是因为有了依赖注入，使得IOC有这非常强大的好处，解耦。
+
+
+JdbcTemplate和数据源完全的解耦了，不强依赖与任何一个数据源。
+
+
+
+- 横切关注点：跨越应用程序多个模块的方法或功能。即是，与我们业务逻辑无关的，但是我们需要关注的部分，就是横切关注点，如日志、安全、缓存、事物等等。【增加的业务：日志】
+- 切面(Aspect)：横切关注点 被模块化 的特殊对象，即是一个类。【日志】
+
+- 通知(Advice)：切面必须要完成的工作，即，它是类中的一个方法。【日志中的方法】
+
+- 目标(Target)：被通知对象【接口】
+
+- 代理(Proxy)：向目标对象应用通知之后创建的对象。【代理类】
+
+- 切入点(PointCut)：切面通知 执行的“地点”的定义。【自定义注解】
+
+- 连接点(JointPoint)：与切入点匹配的执行点。【test】
+
+![image-20220616001814334](appendix/Blog细节/image-20220616001814334.png)
+
+
+
+
+
+#### Controller
+
+##### ArticleController.java
+
+src/main/java/com/mszlu/blog/controller/ArticleController.java
+
+加上此注解代表着我们需要对此接口记录日志
+
+```java
+    @PostMapping
+    //加上此注解，代表要对此接口记录日志
+    @LogAnnotation(module = "文章",operation = "获取文章列表")
+    public Result listArticle(@RequestBody PageParams pageParams){
+
+        return articleService.listArticle(pageParams);
+
+    }
+```
+
+> @LogAnnotation是我们自己创建的注解
+
+
+
+#### AOP
+
+##### LogAnnotation.java
+
+自定义注解
+
+在不改变原有方法基础上对原有方法进行增强
+ src/main/java/com/mszlu/blog/common/aop/LogAnnotation.java
+
+```java
+package com.mszlu.blog.common.aop;
+
+import java.lang.annotation.*;
+
+/**
+ * 日志注解
+ */
+ //ElementType.TYPE代表可以放在类上面  method代表可以放在方法上
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface LogAnnotation {
+	
+    
+    //模块名称
+    String module() default "";
+	
+    //操作名称
+    String operation() default "";
+}
+```
+
+
+
+##### LogAspect.java
+
+使注解生效，定义切面（类）
+
+src/main/java/com/mszlu/blog/common/aop/LogAspect.java
+
+```java
+package com.mszlu.blog.common.aop;
+
+import com.alibaba.fastjson.JSON;
+import com.mszlu.blog.utils.HttpContextUtils;
+import com.mszlu.blog.utils.IpUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+
+/**
+ * @Author ljm
+ * @Date 2021/10/18 21:01
+ * @Version 1.0
+ */
+@Component
+@Aspect //切面 定义了通知和切点的关系
+@Slf4j
+public class LogAspect {
+
+   //切点 ：我们刚才自定义的注解@Pointcut("@annotation(com.mszlu.blog.common.aop.LogAnnotation)")
+    public void pt(){
+    }
+
+    //环绕通知：前后都可以进行增强
+    @Around("pt()")
+    public Object log(ProceedingJoinPoint point) throws Throwable {
+        long beginTime = System.currentTimeMillis();
+        //执行方法，调用原有的方法
+        Object result = point.proceed();
+        //执行时长(毫秒)
+        long time = System.currentTimeMillis() - beginTime;
+        //保存日志
+        recordLog(point, time);
+        return result;
+
+    }
+
+    private void recordLog(ProceedingJoinPoint joinPoint, long time) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+        LogAnnotation logAnnotation = method.getAnnotation(LogAnnotation.class);
+        log.info("=====================log start================================");
+        log.info("module:{}",logAnnotation.module());
+        log.info("operation:{}",logAnnotation.operation());
+
+        //请求的方法名
+        String className = joinPoint.getTarget().getClass().getName();
+        String methodName = signature.getName();
+        log.info("request method:{}",className + "." + methodName + "()");
+
+//        //请求的参数
+        Object[] args = joinPoint.getArgs();
+        //转为字符串
+        String params = JSON.toJSONString(args[0]);
+        log.info("params:{}",params);
+
+        //获取request 设置IP地址
+        HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
+        log.info("ip:{}", IpUtils.getIpAddr(request));
+
+
+        log.info("excute time : {} ms",time);
+        log.info("=====================log end================================");
+    }
+
+}
+```
+
+> - 前置通知
+>
+>       1. 在执行目标方法之前执行，比如请求接口之前的登录验证;
+>       2. 在前置通知中设置请求日志信息，如开始时间，请求参数，注解内容等
+>
+> - 执行原有方法
+>
+>   Object ret = pjp.proceed()
+>
+>   当我们执行完切面代码之后，还有继续处理业务相关的代码。proceed()方法会继续执行业务代码，并且其返回值，就是业务处理完成之后的返回值。    
+>
+> - 返回通知
+>
+>   ```java
+>   1. 在目标方法正常结束之后执行
+>   2. 在返回通知中补充请求日志信息，如返回时间，方法耗时，返回值，并且保存日志信息
+>   ```
+
+#### Utils
+
+##### HttpContextUtils.java
+
+用到的工具类
+ src/main/java/com/mszlu/blog/utils/HttpContextUtils.java
+
+```java
+package com.mszlu.blog.utils;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * HttpServletRequest
+ *
+ */
+public class HttpContextUtils {
+
+    public static HttpServletRequest getHttpServletRequest() {
+        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    }
+
+}
+```
+
+
+
+##### IpUtils.java
+
+src/main/java/com/mszlu/blog/utils/IpUtils.java
+
+```java
+package com.mszlu.blog.utils;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * 获取Ip
+ *
+ */
+@Slf4j
+public class IpUtils {
+
+    /**
+     * 获取IP地址
+     * <p>
+     * 使用Nginx等反向代理软件， 则不能通过request.getRemoteAddr()获取IP地址
+     * 如果使用了多级反向代理的话，X-Forwarded-For的值并不止一个，而是一串IP地址，X-Forwarded-For中第一个非unknown的有效IP字符串，则为真实IP地址
+     */
+    public static String getIpAddr(HttpServletRequest request) {
+        String ip = null, unknown = "unknown", seperator = ",";
+        int maxLength = 15;
+        try {
+            ip = request.getHeader("x-forwarded-for");
+            if (StringUtils.isEmpty(ip) || unknown.equalsIgnoreCase(ip)) {
+                ip = request.getHeader("Proxy-Client-IP");
+            }
+            if (StringUtils.isEmpty(ip) || ip.length() == 0 || unknown.equalsIgnoreCase(ip)) {
+                ip = request.getHeader("WL-Proxy-Client-IP");
+            }
+            if (StringUtils.isEmpty(ip) || unknown.equalsIgnoreCase(ip)) {
+                ip = request.getHeader("HTTP_CLIENT_IP");
+            }
+            if (StringUtils.isEmpty(ip) || unknown.equalsIgnoreCase(ip)) {
+                ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+            }
+            if (StringUtils.isEmpty(ip) || unknown.equalsIgnoreCase(ip)) {
+                ip = request.getRemoteAddr();
+            }
+        } catch (Exception e) {
+            log.error("IpUtils ERROR ", e);
+        }
+
+        // 使用代理，则获取第一个IP地址
+        if (StringUtils.isEmpty(ip) && ip.length() > maxLength) {
+            int idx = ip.indexOf(seperator);
+            if (idx > 0) {
+                ip = ip.substring(0, idx);
+            }
+        }
+
+        return ip;
+    }
+
+    /**
+     * 获取ip地址
+     *
+     * @return
+     */
+    public static String getIpAddr() {
+        HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
+        return getIpAddr(request);
+    }
+}
+```
+
+
+
+#### 测试
+
+![image-20220616005508362](appendix/Blog细节/image-20220616005508362.png)
+
+![image-20220616005600904](appendix/Blog细节/image-20220616005600904.png)
+
+
+
+### Bug修正
+
+问题：文章归档处显示null值
+
+原因：之前是20210618这种带格式的值，但现在传的是毫秒值16239...
+
+解决：需要对毫秒值进行转化，Y表示年，m表示月，对时间进行重写。
+
+![image-20220616010107426](appendix/Blog细节/image-20220616010107426.png)
+
+> 函数：FROM_UNIXTIME
+> 作用：将MYSQL中以INT(11)存储的时间以"YYYY-MM-DD"格式来显示。
+> 语法：**FROM_UNIXTIME(unix_timestamp,format)**
+>
+> ```sql
+> SELECT FROM_UNIXTIME(1234567890, '%Y-%m-%d %H:%i:%S')
+> ```
+
+[相关函数说明](https://www.cnblogs.com/ltian123/p/11077901.html)
+
+替换ArticleMapper.xml
+
+```sql
+select FROM_UNIXTIME(create_date/1000,'%Y') as year, FROM_UNIXTIME(create_date/1000,'%m') as month,count(*) as count from ms_article group by year,month
+```
+
+```xml
+  <select id="listArticle" resultMap="articleMap">
+        select * from ms_article
+        <where>
+            1 = 1
+            <if test="categoryId != null">
+                and category_id=#{categoryId}
+            </if>
+            <if test="tagId != null">
+                and id in (select article_id from ms_article_tag where tag_id=#{tagId})
+            </if>
+            <if test="year != null and year.length>0 and month != null and month.length>0">
+               and (FROM_UNIXTIME(create_date/1000,'%Y') =#{year} and FROM_UNIXTIME(create_date/1000,'%m')=#{month})
+            </if>
+        </where>
+        order by weight,create_date desc
+    </select>
+```
+
+
+
+### 文章图片上传
+
+#### 接口说明
+
+接口url：/upload
+
+请求方式：POST
+
+请求参数：
+
+| 参数名称 | 参数类型 | 说明           |
+| -------- | -------- | -------------- |
+| image    | file     | 上传的文件名称 |
+
+返回数据：
+
+```json
+{
+    "success":true,
+ 	"code":200,
+    "msg":"success",
+    "data":"https://static.mszlu.com/aa.png"
+}
+
+```
+
+修改pom文件引入七牛云的sdk
+**pom.xml**
+
+```xml
+<dependency>
+  <groupId>com.qiniu</groupId>
+  <artifactId>qiniu-java-sdk</artifactId>
+  <version>[7.7.0, 7.7.99]</version>
+</dependency>
+
+```
+
+
+
+#### code
+
+##### Controller
+
+###### UploadController.java
+
+src/main/java/com/mszlu/blog/controller/UploadController.java
+
+```java
+@RestController
+@RequestMapping("upload")
+public class UploadController {
+    @Autowired
+    private QiniuUtils qiniuUtils;
+
+    //https://blog.csdn.net/justry_deng/article/details/80855235 MultipartFile介绍
+    @PostMapping
+    public Result upload(@RequestParam("image")MultipartFile file){
+        //原始文件名称 比如说aa.png
+        String originalFilename = file.getOriginalFilename();
+        //保证唯一的文件名称
+        String fileName =  UUID.randomUUID().toString()+"."+StringUtils.substringAfterLast(originalFilename, ".");
+        //上传文件上传到那里呢？　七牛云　云服务器
+        //降低我们自身应用服务器的带宽消耗
+        boolean upload = qiniuUtils.upload(file, fileName);
+        if (upload) {
+            return Result.success(QiniuUtils.url+fileName);
+        }
+        return Result.fail(20001,"上传失败");
+
+}
+
+
+```
+
+> - 获取请求参数：@RequestParam
+>
+>   如果要获取PostMapping中的参数值用@PathVariable
+>
+> - 上传文件上传到那里呢？
+>
+>   如果上传到应用服务器：占用应用服务器带宽
+>
+>   上传到图片服务器减少带宽消耗->云服务器
+
+##### 使用七牛云（免费）
+
+注意七牛云测试域名 https://static.mszlu.com/ 一个月一回收，记得去修改。
+springboot默认只上传1M的图片大小所以修改文件配置
+
+###### application.properties
+
+src/main/resources/application.properties
+
+```properties
+# 上传文件总的最大值
+spring.servlet.multipart.max-request-size=20MB
+# 单个文件的最大值
+spring.servlet.multipart.max-file-size=2MB
+```
+
+
+
+[七牛云建立存储空间教程](https://jingyan.baidu.com/article/0bc808fc267b8f1bd485b93b.html)
+
+###### QiniuUtils.java
+
+src/main/java/com/mszlu/blog/utils/QiniuUtils.java
+
+```java
+@Component
+public class QiniuUtils {
+
+    public static  final String url = "https://static.mszlu.com/";
+
+//修改以下两个值放到proprietarties中，在密钥管理中获取
+    @Value("${qiniu.accessKey}")
+    private  String accessKey;
+    @Value("${qiniu.accessSecretKey}")
+    private  String accessSecretKey;
+
+    public  boolean upload(MultipartFile file,String fileName){
+
+        //构造一个带指定 Region 对象的配置类
+        Configuration cfg = new Configuration(Region.huabei());
+        //...其他参数参考类注释
+        UploadManager uploadManager = new UploadManager(cfg);
+        //...生成上传凭证，然后准备上传，修改上传名称为自己创立空间的空间名称（是你自己的）
+        String bucket = "mszlu";
+        //默认不指定key的情况下，以文件内容的hash值作为文件名
+        try {
+            byte[] uploadBytes = file.getBytes();
+            Auth auth = Auth.create(accessKey, accessSecretKey);
+            String upToken = auth.uploadToken(bucket);
+                Response response = uploadManager.put(uploadBytes, fileName, upToken);
+                //解析上传成功的结果
+                DefaultPutRet putRet = JSON.parseObject(response.bodyString(), DefaultPutRet.class);
+                return true;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        return false;
+    }
+}
+```
+
+
+
+### 导航-文章分类
+
+#### 接口说明
+
+接口url：/categorys/detail
+
+请求方式：GET
+
+请求参数：无
+
+返回数据：
+
+```json
+{
+    "success": true, 
+    "code": 200, 
+    "msg": "success", 
+    "data": [
+        {
+            "id": 1, 
+            "avatar": "/static/category/front.png", 
+            "categoryName": "前端", 
+            "description": "前端是什么，大前端"
+        }, 
+        {
+            "id": 2, 
+            "avatar": "/static/category/back.png", 
+            "categoryName": "后端", 
+            "description": "后端最牛叉"
+        }, 
+        {
+            "id": 3, 
+            "avatar": "/static/category/lift.jpg", 
+            "categoryName": "生活", 
+            "description": "生活趣事"
+        }, 
+        {
+            "id": 4, 
+            "avatar": "/static/category/database.png", 
+            "categoryName": "数据库", 
+            "description": "没数据库，啥也不管用"
+        }, 
+        {
+            "id": 5, 
+            "avatar": "/static/category/language.png", 
+            "categoryName": "编程语言", 
+            "description": "好多语言，该学哪个？"
+        }
+    ]
+}
+```
+
+#### code
+
+##### Vo
+
+###### CategoryVo.java
+
+src/main/java/com/mszlu/blog/vo/CategoryVo.java
+
+```java
+package com.mszlu.blog.vo;
+
+import lombok.Data;
+
+@Data
+public class CategoryVo {
+
+    private Long id;
+
+    private String avatar;
+
+    private String categoryName;
+
+    private String description;
+}
+```
+
+##### Controller
+
+###### CategoryController.java
+
+src/main/java/com/mszlu/blog/controller/CategoryController.java
+
+```java
+@GetMapping("detail")
+    public Result categoriesDetail(){
+        return categoryService.findAllDetail();
+    }
+```
+
+##### Service
+
+###### CategoryService.java
+
+src/main/java/com/mszlu/blog/service/CategoryService.java
+
+```java
+    Result findAllDetail();
+```
+
+**CategoryServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/CategoryServiceImpl.java
+
+```java
+ @Override
+    public Result findAllDetail() {
+        List<Category> categories = categoryMapper.selectList(new LambdaQueryWrapper<>());
+        //页面交互的对象
+        return Result.success(copyList(categories));
+    }
+
+```
+
+#### 测试
+
+![image-20220616212600772](appendix/Blog细节/image-20220616212600772.png)
+
+
+
+### 查询所有标签
+
+#### 接口说明
+
+接口url：/tags/detail
+
+请求方式：GET
+
+请求参数：无
+
+返回数据：
+
+```json
+{
+    "success": true, 
+    "code": 200, 
+    "msg": "success", 
+    "data": [
+        {
+            "id": 5, 
+            "tagName": "springboot", 
+            "avatar": "/static/tag/java.png"
+        }, 
+        {
+            "id": 6, 
+            "tagName": "spring", 
+            "avatar": "/static/tag/java.png"
+        }, 
+        {
+            "id": 7, 
+            "tagName": "springmvc", 
+            "avatar": "/static/tag/java.png"
+        }, 
+        {
+            "id": 8, 
+            "tagName": "11", 
+            "avatar": "/static/tag/css.png"
+        }
+    ]
+}
+```
+
+
+
+#### code
+
+##### Vo
+
+###### TagVo.java
+
+src/main/java/com/mszlu/blog/vo/TagVo.java
+
+```java
+package com.mszlu.blog.vo;
+
+import lombok.Data;
+
+@Data
+public class TagVo {
+
+    private Long id;
+
+    private String tagName;
+
+    private String avatar;
+}
+```
+
+##### Controller
+
+###### TagsController.java
+
+src/main/java/com/mszlu/blog/controller/TagsController.java
+
+```java
+ @GetMapping("detail")
+    public Result findAllDetail(){
+        return tagService.findAllDetail();
+    }
+
+```
+
+
+
+##### Service
+
+###### TagService.java
+
+src/main/java/com/mszlu/blog/service/TagService.java
+
+```java
+    Result findAllDetail();
+```
+
+**TagServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/TagServiceImpl.java
+
+```java
+ @Override
+    public Result findAllDetail() {
+        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        List<Tag> tags = this.tagMapper.selectList(queryWrapper);
+        return Result.success(copyList(tags));
+    }
+
+```
+
+#### 结果
+
+![image-20220616213026616](appendix/Blog细节/image-20220616213026616.png)
+
+
+
+
+
+### 分类文章列表
+
+#### 接口说明
+
+接口url：/category/detail/{id}
+
+请求方式：GET
+
+请求参数：
+
+| 参数名称 | 参数类型 | 说明     |
+| -------- | -------- | -------- |
+| id       | 分类id   | 路径参数 |
+
+返回数据：
+
+```json
+{
+    "success": true, 
+    "code": 200, 
+    "msg": "success", 
+    "data": 
+        {
+            "id": 1, 
+            "avatar": "/static/category/front.png", 
+            "categoryName": "前端", 
+            "description": "前端是什么，大前端"
+        }
+}
+
+```
+
+
+
+#### code
+
+##### Controller
+
+###### CategoryController.java
+
+src/main/java/com/mszlu/blog/controller/CategoryController.java
+
+```java
+@RestController
+@GetMapping("detail/{id}")
+public Result categoryDetailById(@PathVariable("id") Long id){
+    return categoryService.categoriesDetailById(id);
+}
+```
+
+
+
+##### Service
+
+###### CategoryService.java
+
+src/main/java/com/mszlu/blog/service/CategoryService.java
+
+```java
+Result categoriesDetailById(Long id){}
+```
+
+**CategoryServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/CategoryServiceImpl.java
+
+```java
+@Override
+    public Result categoriesDetailById(Long id) {
+        Category category = categoryMapper.selectById(id);
+        //转换为CategoryVo
+        CategoryVo categoryVo = copy(category);
+        return Result.success(categoryVo);
+    }
+```
+
+完成上面这些只能说是可以显示文章分类的图标了
+
+![image-20220616214201369](appendix/Blog细节/image-20220616214201369.png)
+
+但是如果想显示后端所有的归属内容得在文章查询列表出进行queryWrapper查找，当文章分类标签不是null时，加入文章分类标签这个查询元素进行分类修改。
+
+###### ArticleServiceImpl.java
+
+src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+
+   @Override
+    public Result listArticle(PageParams pageParams) {
+        /**
+         * 1、分页查询article数据库表
+         */
+        Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        //查询文章的参数 加上分类id，判断不为空 加上分类条件  
+        if (pageParams.getCategoryId()!=null) {
+            //and category_id=#{categoryId}
+            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
+        }
+        //是否置顶进行排序,        //时间倒序进行排列相当于order by create_data desc
+        queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
+        Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
+        //分页查询用法 https://blog.csdn.net/weixin_41010294/article/details/105726879
+        List<Article> records = articlePage.getRecords();
+        // 要返回我们定义的vo数据，就是对应的前端数据，不应该只返回现在的数据需要进一步进行处理
+        List<ArticleVo> articleVoList =copyList(records,true,true);
+        return Result.success(articleVoList);
+    }
+
+```
+
+##### Vo
+
+###### PageParams.java
+
+src/main/java/com/mszlu/blog/vo/params/PageParams.java
+
+```java
+package com.mszlu.blog.vo.params;
+
+import lombok.Data;
+
+@Data
+public class PageParams {
+
+    private int page = 1;
+
+    private int pageSize = 10;
+
+    private Long categoryId;
+
+    private Long tagId;
+}
+```
+
+最后就可以显示所有文章分类的每个标签下的内容了
+
+
+
+#### 测试
+
+![image-20220616214733834](appendix/Blog细节/image-20220616214733834.png)
+
+
+
+### 标签文章列表
+
+#### 接口说明
+
+接口url：/tags/detail/{id}
+
+请求方式：GET
+
+请求参数：
+
+| 参数名称 | 参数类型 | 说明     |
+| -------- | -------- | -------- |
+| id       | 标签id   | 路径参数 |
+
+返回数据：
+
+```json
+{
+    "success": true, 
+    "code": 200, 
+    "msg": "success", 
+    "data": 
+        {
+            "id": 5, 
+            "tagName": "springboot", 
+            "avatar": "/static/tag/java.png"
+        }
+}
+```
+
+#### code
+
+##### Controller
+
+###### TagsController.java
+
+src/main/java/com/mszlu/blog/controller/TagsController.java
+
+```java
+    @GetMapping("detail/{id}")
+    public Result findADetailById(@PathVariable("id") Long id){
+        /**
+         * 查询所有文章标签下所有的文章
+         * @return
+         */
+        return tagService.findADetailById(id);
+    }
+
+```
+
+
+
+##### Service
+
+###### TagService.java
+
+src/main/java/com/mszlu/blog/service/TagService.java
+
+```java
+Result findADetailById(Long id);
+
+```
+
+**TagServiceImpl.java**
+
+src/main/java/com/mszlu/blog/service/impl/TagServiceImpl.java
+
+```java
+ @Override
+    public Result findDetailById(Long id) {
+        Tag tag = tagMapper.selectById(id);
+        TagVo copy = copy(tag);
+        return Result.success(copy);
+    }
+```
+
+完成上面这些这保证了文章标签显示出来了
+
+![image-20220616215144480](appendix/Blog细节/image-20220616215144480.png)
+
+
+
+我们需要重写文章查询接口，保证当遇到标签查询时我们可以做到正确查询文章标签所对应的内容，要不每一个标签查出来的内容都是一样的。
+
+###### ArticleServiceImpl.java
+
+src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+修改原有的查询文章接口
+
+```java
+        //加入标签条件查询
+        //article表中并没有tag字段 一篇文章有多个标签
+        //articie_tog article_id 1：n tag_id
+        //我们需要利用一个全新的属于文章标签的queryWrapper将这篇文章的article_Tag查出来，保存到一个list当中。
+        // 然后再根据queryWrapper的in方法选择我们需要的标签即可。
+```
+
+```java
+
+    @Override
+    public Result listArticle(PageParams pageParams) {
+        /**
+         * 1、分页查询article数据库表
+         */
+        Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        if (pageParams.getCategoryId()!=null) {
+            //and category_id=#{categoryId}
+            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
+        }
+        List<Long> articleIdList = new ArrayList<>();
+        if(pageParams.getTagId()!=null){
+            //加入标签条件查询
+            //article表中并没有tag字段 一篇文章有多个标签
+            //articie_tog article_id 1：n tag_id
+            //我们需要利用一个全新的属于文章标签的queryWrapper将这篇文章的article_Tag查出来，保存到一个list当中。
+            // 然后再根据queryWrapper的in方法选择我们需要的标签即可。
+
+            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            articleTagLambdaQueryWrapper.eq(ArticleTag::getTagId,pageParams.getTagId());
+            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
+            for (ArticleTag articleTag : articleTags) {
+                articleIdList.add(articleTag.getArticleId());
+            }
+            if (articleTags.size() > 0) {
+                // and id in(1,2,3)
+                queryWrapper.in(Article::getId,articleIdList);
+            }
+
+        }
+        //是否置顶进行排序,        //时间倒序进行排列相当于order by create_data desc
+        queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
+        Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
+        //分页查询用法 https://blog.csdn.net/weixin_41010294/article/details/105726879
+        List<Article> records = articlePage.getRecords();
+        // 要返回我们定义的vo数据，就是对应的前端数据，不应该只返回现在的数据需要进一步进行处理
+        List<ArticleVo> articleVoList =copyList(records,true,true);
+        return Result.success(articleVoList);
+    }
+
+
+```
+
+> 结果保存在列表里，是最常用的技巧
+
+#### 测试
+
+![image-20220616215526590](appendix/Blog细节/image-20220616215526590.png)
+
+
+
+### 归档文章列表
+
+#### 接口说明
+
+接口url：/articles
+
+请求方式：POST
+
+请求参数：
+
+| 参数名称 | 参数类型 | 说明 |
+| -------- | -------- | ---- |
+| year     | string   | 年   |
+| month    | string   | 月   |
+
+返回数据：
+
+```json
+{
+    "success": true, 
+    "code": 200, 
+    "msg": "success", 
+    "data": [文章列表，数据同之前的文章列表接口]
+        
+}
+```
+
+[mybatisplus驼峰命名和mapper.xml使用](https://blog.csdn.net/lijiaming_99/article/details/120863442)
+
+##### 
+
+#### code
+
+##### Vo
+
+文章列表参数，扩充了之前的
+
+###### PageParams.java
+
+src/main/java/com/mszlu/blog/vo/params/PageParams.java
+
+```java
+package com.mszlu.blog.vo.params;
+
+import lombok.Data;
+
+@Data
+public class PageParams {
+
+    private int page = 1;
+
+    private int pageSize = 10;
+
+    private Long categoryId;
+
+    private Long tagId;
+
+    private String year;
+
+    private String month;
+
+    //传递6的话变成06
+    public String getMonth(){
+        if (this.month != null && this.month.length() == 1){
+            return "0"+this.month;
+        }
+        return this.month;
+    }
+}
+```
+
+
+
+##### Service
+
+自定义sql(用到了动态sql) 实现文章列表：因为要使用FROM_UNIXTIME函数，但mp不支持，所以需要自定义Sql，感觉是套mybatis的模子（写xml），但还是用的mp
+
+这块的分页还是用的mp的插件，只是自定义了sql
+
+###### ArticleServiceImpl.java
+
+src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+  @Override
+    public Result listArticle(PageParams pageParams) {
+        Page<Article> page = new Page<>(pageParams.getPage(),pageParams.getPageSize());
+        
+        //替换
+        IPage<Article> articleIPage = this.articleMapper.listArticle(page,pageParams.getCategoryId(),pageParams.getTagId(),pageParams.getYear(),pageParams.getMonth());
+        return Result.success(copyList(articleIPage.getRecords(),true,true));
+        
+    }
+
+```
+
+原先的写法：
+
+```java
+@Override
+public Result listArticle(PageParams pageParams) {
+    /**
+     * 1、分页查询article数据库表
+     */
+    //mp会自动关联了Article对象和ms_article表
+    Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+    
+    //进行了替换
+    //查询条件
+    LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+    //置顶排序 时间倒序进行排列 相当于order by create_data desc
+    queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
+    //selectPage就是分页查询
+    Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
+    //分页查询用法 https://blog.csdn.net/weixin_41010294/article/details/105726879
+    //record对应表里的一行记录，所以结果是list
+    List<Article> records = articlePage.getRecords();
+    //在这里不能把List直接返回
+    // 要返回我们定义的vo数据，就是对应的前端数据，不应该只返回现在的从数据库拿出来的数据需要进一步进行处理
+    List<ArticleVo> articleVoList =copyList(records,true,true);
+    return Result.success(articleVoList);
+}
+```
+**ArticleMapper.xml**
+
+```xml
+<!--pojo类和mysql数据库表的属性做映射-->
+    <resultMap id="articleMap" type="com.mszlu.blog.dao.pojo.Article">
+        <id column="id" property="id" />
+        <result column="author_id" property="authorId"/>
+        <result column="comment_counts" property="commentCounts"/>
+        <result column="create_date" property="createDate"/>
+        <result column="summary" property="summary"/>
+        <result column="title" property="title"/>
+        <result column="view_counts" property="viewCounts"/>
+        <result column="weight" property="weight"/>
+        <result column="body_id" property="bodyId"/>
+        <result column="category_id" property="categoryId"/>
+    </resultMap>
+
+ 
+<!-- resultMap和resultType区别   -->
+<!--驼峰命名法   -->
+<!--    Long categoryId,-->
+<!--    Long tagId,-->
+<!--    String year,-->
+<!--    String month-->
+<!--mybatis中xml文件用法    https://blog.csdn.net/weixin_43882997/article/details/85625805-->
+<!--动态sql    https://www.jianshu.com/p/e309ae5e4a77-->
+<!--驼峰命名 -->
+    <select id="listArticle" resultMap="articleMap">
+        select * from ms_article
+        <where>
+            1 = 1
+            <if test="categoryId != null">
+                and category_id=#{categoryId}
+            </if>
+            <if test="tagId != null">
+                and id in (select article_id from ms_article_tag where tag_id=#{tagId})
+            </if>
+            <if test="year != null and year.length>0 and month != null and month.length>0">
+                and (FROM_UNIXTIME(create_date/1000,'%Y') =#{year} and FROM_UNIXTIME(create_date/1000,'%m')=#{month})
+            </if>
+        </where>
+        order by weight,create_date desc
+    </select>
+
+```
+
+> - resultType和ResultMap
+>
+>   [详细](https://blog.csdn.net/xushiyu1996818/article/details/89075069?spm=1001.2101.3001.6650.4&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link)
+>
+>   MyBatis中在查询进行select映射的时候，返回类型可以用resultType，也可以用resultMap，resultType是直接表示返回类型的，而resultMap则是对外部ResultMap的引用，但是resultType跟resultMap不能同时存在。
+>
+>   
+>
+>   ResultMap适合返回值是自定义实体类的情况
+>
+>   映射实体类的数据类型
+>
+>   id:resultMap的唯一标识
+>
+>   column: 库表的字段名
+>
+>   property： 实体类里的属性名
+>
+>   
+>
+>   ```xml
+>   <!--类似主键,用id-->
+>   <id property="id" column="post_id"/>
+>   <!--非主键，其他属性用result-->
+>   <result property="subject" column="post_subject"/>
+>   ```
+>
+>   
+>
+>   **用resultMap标签先进行结果集映射，再在Select标签中resultMap中的属性赋值**
+>
+>   <result property="subject" column="post_subject"/>
+>
+> - 开启驼峰规则，则不用做resultMap的映射
+>
+>   [驼峰规则](https://zoutao.blog.csdn.net/article/details/82685918?spm=1001.2101.3001.6650.18&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-18.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-18.no_search_link)
+>
+>   [驼峰命名](https://blog.csdn.net/A_Java_Dog/article/details/107006391?spm=1001.2101.3001.6650.6&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link)
+>
+> - 1=1
+>
+>   是动态Sql的一种优化，因为是动态sql，有可能where条件后面一个字段都没有，或者and前字段无效，添加前置条件，1=1。举例问题sql：其实mybatis会处理这种情况，但是mp不会
+>
+>   ```sql
+>   select * from user where and deleteFlag=0
+>   ```
+>
+>   也可以使用trim标签进行去除
+>
+>   ```xml
+>   <trim prefix="WHERE" prefixOverrides="AND |OR ">
+>       ... 
+>   </trim>
+>   ```
+>
+> - 动态Sql可以看看这个
+>
+>   - where：mybatis自动处理and前为空的情况
+>   - if：where中条件判断
+>   - set：设置后置条件没有但有多余,情况
+>   - trim：处理前后缀的问题（prefixOverrides，suffixOverrides）
+>   - foreach：实现for循环，主要遍历java容器和数组
+>   - choose：switch
+>
+>   [动态sql](https://www.jianshu.com/p/e309ae5e4a77)
+
+#### 测试
+
+![image-20220616220047844](appendix/Blog细节/image-20220616220047844.png)
+
+
+
+
+
+### *统一缓存处理（AOP方式实现优化）
+
+> 使用场景：
+>
+> 因为有大量用户短时间内进入到了详情页，所以可以把活动列表缓存起来，直接读缓存就可以了。防止过量访问
+
+内存的访问速度 远远大于 磁盘的访问速度 （1000倍起）
+
+[Spring Cache介绍](https://juejin.cn/post/6997440726627778597#heading-0)
+
+> Spring Cache 主要是作用在类上或者方法上，对类中的方法的返回结果进行缓存。
+>
+> 但这块没有用spring cache，是我们自己实现的，然后写入到了redis
+
+#### code
+
+##### Cache.java
+
+src/main/java/com/mszlu/blog/common/cache/Cache.java
+
+定义切入点：自定义注解
+
+```java
+package com.mszlu.blog.common.cache;
+
+
+import java.lang.annotation.*;
+
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Cache {
+	//过期时间
+    long expire() default 1 * 60 * 1000;
+	//缓存前缀标识
+    String name() default "";
+
+}
+```
+
+##### CacheAspect.java
+
+src/main/java/com/mszlu/blog/common/cache/CacheAspect.java
+
+定义切面【类】
+
+切面 定义了切点和通知的关系
+
+```java
+@Aspect
+@Component
+@Slf4j
+public class CacheAspect {
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+   //切入点
+    @Pointcut("@annotation(com.mszlu.blog.common.cache.Cache)")
+    public void pt(){}
+	
+    //环绕通知
+    @Around("pt()")
+    public Object around(ProceedingJoinPoint pjp){
+        try {
+            //pjp就是要使用通知的方法
+            Signature signature = pjp.getSignature();
+            //类名
+            //AticleController
+            String className = pjp.getTarget().getClass().getSimpleName();
+            //调用的方法名
+            //hotArticle()
+            String methodName = signature.getName();
+
+
+            Class[] parameterTypes = new Class[pjp.getArgs().length];
+            Object[] args = pjp.getArgs();
+            //参数
+            String params = "";
+            for(int i=0; i<args.length; i++) {
+                if(args[i] != null) {
+                    params += JSON.toJSONString(args[i]);
+                    parameterTypes[i] = args[i].getClass();
+                }else {
+                    parameterTypes[i] = null;
+                }
+            }
+            if (StringUtils.isNotEmpty(params)) {
+                //加密 以防出现key过长以及字符转义获取不到的情况
+                params = DigestUtils.md5Hex(params);
+            }
+            Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
+            //获取Cache注解
+            Cache annotation = method.getAnnotation(Cache.class);
+            //缓存过期时间
+            long expire = annotation.expire();
+            //缓存名称
+            String name = annotation.name();
+            //先从redis获取
+            String redisKey = name + "::" + className+"::"+methodName+"::"+params;
+            String redisValue = redisTemplate.opsForValue().get(redisKey);
+            if (StringUtils.isNotEmpty(redisValue)){
+                log.info("走了缓存~~~,{},{}",className,methodName);
+                return JSON.parseObject(redisValue, Result.class);
+            }
+            //如果为空，则走原来的业务代码
+            Object proceed = pjp.proceed();
+            redisTemplate.opsForValue().set(redisKey,JSON.toJSONString(proceed), Duration.ofMillis(expire));
+            log.info("存入缓存~~~ {},{}",className,methodName);
+            return proceed;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return Result.fail(-999,"系统错误");
+    }
+
+}
+
+
+```
+
+使用：
+
+```java
+   @PostMapping("hot")
+//5分钟
+    @Cache(expire = 5 * 60 * 1000,name = "hot_article")
+    public Result hotArticle(){
+        int limit = 5;
+        return articleService.hotArticle(limit);
+    }
+
+```
+
+
+
+#### 测试
+
+代码：
+
+![image-20220617002214523](appendix/Blog细节/image-20220617002214523.png)
+
+![image-20220617002236622](appendix/Blog细节/image-20220617002236622.png)
+
+redis：
+
+![image-20220617002413774](appendix/Blog细节/image-20220617002413774.png)
+
+
+
+#### *Bug修正
+
+但会出现文章为空的情况，分析发现文章id不存在在数据库中，则还是存在了精度的损失（分布式id易于扩展），是因为走了缓存，缓存处理时，不管json的序列化，所以我们得手动改成string类型
+
+```java
+//原来
+@JsonSerialize(using = ToStringSerializer.class)
+private Long id;
+
+//现在
+private String id;
+```
+
+同时修改vo的相关复制，string和long的处理不同
+
+```java
+@Override
+    public CategoryVo findCategoryById(Long categoryId) {
+        Category category = categoryMapper.selectById(categoryId);
+        CategoryVo categoryVo = new CategoryVo();
+        BeanUtils.copyProperties(category,categoryVo);
+   
+ //原来没有这句
+        categoryVo.setId(String.valueOf(category.getId()));
+        return categoryVo;
+    }
+```
+
+> long转string要使用valueof有效防止空指针异常，而不是toSting
+>
+> mysql中id主键为bigint，因为可以自增，varchar不可以自增
+
+
+
+### 思考别的优化
+
+[mongodb](https://blog.csdn.net/yanpenglei/article/details/79261875)
+[redis incr](https://www.cnblogs.com/sheseido/p/11243341.html)
+
+- 文章可以放入es（Elasticsearch）当中，便于后续中文分词搜索。springboot教程有和es的整合
+
+  > Elasticsearch是搜索服务器
+
+- 评论数据，可以考虑放入mongodb当中。电商系统当中 评论数据放入mongo中
+
+  > mongodb适合放松散结构的数据
+
+- 阅读数和评论数 ，考虑把阅读数和评论数 增加的时候 放入redis incr自增，使用定时任务 定时把数据固话到数据库当中
+
+- 为了加快访问速度，部署的时候，可以把图片，js，css等放入七牛云存储中，加快网站访问速度
+
+
+
+# BlOG-Admin
+
+做一个后台 用springsecurity 做一个权限系统，对工作帮助比较大
+
+element，vue
+
+## 搭建项目
+
+### 新建maven工程 blog-admin
+
+#### pom.xml
+
+blog/blog-api/blog-admin/pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>blog-parent2</artifactId>
+        <groupId>com.mszlu</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>blog-admin</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <!-- 排除 默认使用的logback  -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- log4j2 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.76</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+
+```
+
+
+
+### 配置
+
+#### application.properties
+
+blog/blog-api/blog-admin/src/main/resources/application.properties
+
+前台端口号是8888
+
+```properties
+server.port=8889
+spring.application.name=mszlu_admin_blog
+
+#数据库的配置
+# datasource
+spring.datasource.url=jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=UTF-8&serverTimeZone=UTC
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+#mybatis-plus
+mybatis-plus.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl
+mybatis-plus.global-config.db-config.table-prefix=ms_
+
+# 上传文件总的最大值
+spring.servlet.multipart.max-request-size=20MB
+# 单个文件的最大值
+spring.servlet.multipart.max-file-size=2MB
+```
+
+#### MybatisPlusConfig.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/config/MybatisPlusConfig.java
+
+```java
+package com.mszlu.blog.admin.config;
+
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@MapperScan("com.mszlu.blog.admin.mapper")
+public class MybatisPlusConfig {
+
+    //分页插件
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return interceptor;
+    }
+}
+
+
+```
+
+#### permission.html
+
+blog/blog-api/blog-admin/src/main/resources/static/pages/permission.html
+
+传递分页的参数
+
+```html
+<!--分页的参数-->
+                pagination: {//分页相关模型数据
+					  currentPage: 1,//当前页码
+					  pageSize:2,//每页显示的记录数
+					  total:0,//总记录数
+					  queryString:null//查询条件
+				},
+```
+
+
+
+
+
+### 启动类
+
+#### AdminApp.java
+
+com\mszlu\blog\admin\AdminApp.java
+
+```java
+package com.mszlu.blog.admin;
+
+import com.alibaba.fastjson.annotation.JSONField;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AdminApp {
+
+    public static void main(String[] args) {
+        SpringApplication.run(AdminApp.class,args);
+    }
+}
+
+```
+
+
+
+### 导入前端项目
+
+放入resources下的static目录中
+
+相当于SSM框架中web-app的目录
+
+blog/blog-api/blog-admin/src/main/resources/static
+
+
+
+## 数据库表
+
+### 系统用户类
+
+#### 管理员表: ms_admin
+
+id：管理员id【主键】(系统用户表的id)
+
+username：管理员姓名
+
+password：管理员密码
+
+```sql
+CREATE TABLE `ms_admin`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+```
+
+
+
+#### 权限表：ms_permission
+
+id：权限id【主键】
+
+name：权限名
+
+path：请求路径
+
+description：描述
+
+```sql
+CREATE TABLE `ms_permission`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+```
+
+
+
+#### 管理员权限表：ms_admin_permission
+
+id：管理员权限id【主键】
+
+admin_id：管理员id
+
+permission_id：权限id
+
+（1：n）
+
+```sql
+CREATE TABLE `ms_admin_permission`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT,
+  `admin_id` bigint(0) NOT NULL,
+  `permission_id` bigint(0) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+```
+
+
+
+## 功能实现
+
+### 权限管理
+
+#### 接口分析
+
+##### 传入参数
+
+从html中获取
+
+![image-20220617021522300](appendix/Blog细节/image-20220617021522300.png)
+
+##### 返回结果
+
+![image-20220617022457672](appendix/Blog细节/image-20220617022457672.png)
+
+#### code
+
+##### Controller
+
+###### AdminController.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/controller/AdminController.java
+
+```java
+package com.mszlu.blog.admin.controller;
+
+import com.mszlu.blog.admin.model.params.PageParam;
+import com.mszlu.blog.admin.pojo.Permission;
+import com.mszlu.blog.admin.service.PermissionService;
+import com.mszlu.blog.admin.vo.Result;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("admin")
+public class AdminController {
+
+    @Autowired
+    private PermissionService permissionService;
+
+    @PostMapping("permission/permissionList")
+    public Result permissionList(@RequestBody PageParam pageParam){
+        return permissionService.listPermission(pageParam);
+    }
+
+    //因为之前是双向链接了来着
+    @PostMapping("permission/add")
+    public Result add(@RequestBody Permission permission){
+        return permissionService.add(permission);
+    }
+
+    @PostMapping("permission/update")
+    public Result update(@RequestBody Permission permission){
+        return permissionService.update(permission);
+    }
+
+    @GetMapping("permission/delete/{id}")
+    public Result delete(@PathVariable("id") Long id){
+        return permissionService.delete(id);
+    }
+}
+
+
+```
+
+
+
+##### Vo
+
+###### PageParam.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/model/params/PageParam.java
+
+```java
+package com.mszlu.blog.admin.model.params;
+
+import lombok.Data;
+
+@Data
+public class PageParam {
+
+    private Integer currentPage;
+
+    private Integer pageSize;
+
+    private String queryString;
+}
+
+
+```
+
+###### Result.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/vo/Result.java
+
+```java
+package com.mszlu.blog.admin.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class Result {
+
+    private boolean success;
+
+    private int code;
+
+    private String msg;
+
+    private Object data;
+
+
+    public static Result success(Object data){
+        return new Result(true,200,"success",data);
+    }
+
+    public static Result fail(int code, String msg){
+        return new Result(false,code,msg,null);
+    }
+}
+
+```
+
+###### PageResult.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/vo/PageResult.java
+
+分页结果映射
+
+```java
+package com.mszlu.blog.admin.vo;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class PageResult<T> {
+
+    private List<T> list;
+
+    private Long total;
+}
+
+```
+
+
+
+
+
+##### Service
+
+此处没写成接口，暂时不涉及多实现，所以也可以不写接口
+
+###### PermissionService.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/PermissionService.java
+
+```java
+package com.mszlu.blog.admin.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mszlu.blog.admin.controller.AdminController;
+import com.mszlu.blog.admin.mapper.PermissionMapper;
+import com.mszlu.blog.admin.model.params.PageParam;
+import com.mszlu.blog.admin.pojo.Permission;
+import com.mszlu.blog.admin.vo.PageResult;
+import com.mszlu.blog.admin.vo.Result;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import sun.security.krb5.internal.PAData;
+
+
+@Service
+public class PermissionService {
+    @Autowired
+    private PermissionMapper permissionMapper;
+
+    public Result listPermission(PageParam pageParam) {
+        /**
+         * 要的数据，管理台 表的所有的字段 Permission
+         * 分页查询
+         */
+        Page<Permission> page = new Page<>(pageParam.getCurrentPage(),pageParam.getPageSize());
+        LambdaQueryWrapper<Permission> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(pageParam.getQueryString())){
+            queryWrapper.eq(Permission::getName,pageParam.getQueryString());
+        }
+        Page<Permission> permissionPage = permissionMapper.selectPage(page, queryWrapper);
+        PageResult<Permission> pageResult = new PageResult<>();
+        pageResult.setList(permissionPage.getRecords());
+        pageResult.setTotal(permissionPage.getTotal());
+        return Result.success(pageResult);
+    }
+
+    public Result add(Permission permission) {
+        this.permissionMapper.insert(permission);
+        return Result.success(null);
+    }
+
+    public Result update(Permission permission) {
+        this.permissionMapper.updateById(permission);
+        return Result.success(null);
+    }
+
+    public Result delete(Long id) {
+        this.permissionMapper.deleteById(id);
+        return Result.success(null);
+    }
+}
+
+```
+
+
+
+##### Dao
+
+###### PermissionMapper.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/mapper/PermissionMapper.java
+
+```java
+package com.mszlu.blog.admin.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mszlu.blog.admin.pojo.Permission;
+
+public interface PermissionMapper extends BaseMapper<Permission> {
+}
+
+```
+
+
+
+
+
+##### Pojo
+
+###### Permission.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/pojo/Permission.java
+
+```java
+package com.mszlu.blog.admin.pojo;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
+
+@Data
+public class Permission {
+
+    @TableId(type = IdType.AUTO)
+    //没几个管理员，所以用long，自增
+    private Long id;
+
+    private String name;
+
+    private String path;
+
+    private String description;
+}
+
+
+```
+
+
+
+#### 测试
+
+![image-20220617023642322](appendix/Blog细节/image-20220617023642322.png)
+
+### Security集成
+
+#### 配置
+
+##### pom.xml
+
+```xml
+ <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+```
+
+
+
+##### SecurityConfig.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/config/SecurityConfig.java
+
+```java
+package com.mszlu.blog.admin.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+    public static void main(String[] args) {
+        //加密策略 MD5 不安全 彩虹表  MD5 加盐
+        String mszlu = new BCryptPasswordEncoder().encode("mszlu");
+        System.out.println(mszlu);
+    }
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        super.configure(web);
+    }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+
+        http.authorizeRequests() //开启登录认证
+//                .antMatchers("/user/findAll").hasRole("admin") //访问接口需要admin的角色
+                .antMatchers("/css/**").permitAll()
+                .antMatchers("/img/**").permitAll()
+                .antMatchers("/js/**").permitAll()
+                .antMatchers("/plugins/**").permitAll()
+                .antMatchers("/admin/**").access("@authService.auth(request,authentication)") //自定义service 来去实现实时的权限认证
+                .antMatchers("/pages/**").authenticated()
+                .and().formLogin()
+                .loginPage("/login.html") //自定义的登录页面
+                .loginProcessingUrl("/login") //登录处理接口
+                .usernameParameter("username") //定义登录时的用户名的key 默认为username
+                .passwordParameter("password") //定义登录时的密码key，默认是password
+                .defaultSuccessUrl("/pages/main.html")
+                .failureUrl("/login.html")
+                .permitAll() //通过 不拦截，更加前面配的路径决定，这是指和登录表单相关的接口 都通过
+                .and().logout() //退出登录配置
+                .logoutUrl("/logout") //退出登录接口
+                .logoutSuccessUrl("/login.html")
+                .permitAll() //退出登录的接口放行
+                .and()
+                .httpBasic()
+                .and()
+                .csrf().disable() //csrf关闭 如果自定义登录 需要关闭
+                .headers().frameOptions().sameOrigin();
+    }
+}
+```
+
+
+
+
+
+### 登录验证
+
+#### code
+
+##### Service
+
+###### SecurityUserService.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/SecurityUserService.java
+
+```java
+package com.mszlu.blog.admin.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mszlu.blog.admin.mapper.AdminMapper;
+import com.mszlu.blog.admin.pojo.Admin;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+
+@Component
+@Slf4j
+public class SecurityUserService implements UserDetailsService {
+    @Autowired
+    private AdminService adminService;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        log.info("username:{}",username);
+        //当用户登录的时候，springSecurity 就会将请求 转发到此
+        //根据用户名 查找用户，不存在 抛出异常，存在 将用户名，密码，授权列表 组装成springSecurity的User对象 并返回
+        Admin adminUser = adminService.findAdminByUserName(username);
+        if (adminUser == null){
+            throw new UsernameNotFoundException("用户名不存在");
+        }
+        ArrayList<GrantedAuthority> authorities = new ArrayList<>();
+        UserDetails userDetails = new User(username,adminUser.getPassword(), authorities);
+        //剩下的认证 就由框架帮我们完成
+        return userDetails;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new BCryptPasswordEncoder().encode("123456"));
+    }
+}
+
+
+```
+
+
+
+###### AdminService.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/AdminService.java
+
+```java
+package com.mszlu.blog.admin.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mszlu.blog.admin.mapper.AdminMapper;
+import com.mszlu.blog.admin.mapper.PermissionMapper;
+import com.mszlu.blog.admin.pojo.Admin;
+import com.mszlu.blog.admin.pojo.Permission;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AdminService {
+
+    @Autowired
+    private AdminMapper adminMapper;
+    @Autowired
+    private PermissionMapper permissionMapper;
+
+    public Admin findAdminByUserName(String username){
+        LambdaQueryWrapper<Admin> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Admin::getUsername,username).last("limit 1");
+        Admin adminUser = adminMapper.selectOne(queryWrapper);
+        return adminUser;
+    }
+
+    public List<Permission> findPermissionsByAdminId(Long adminId){
+        return permissionMapper.findPermissionsByAdminId(adminId);
+    }
+
+}
+```
+
+
+
+##### Dao
+
+###### AdminMapper.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/mapper/AdminMapper.java
+
+```java
+package com.mszlu.blog.admin;
+
+import com.alibaba.fastjson.annotation.JSONField;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AdminApp {
+
+    public static void main(String[] args) {
+        SpringApplication.run(AdminApp.class,args);
+    }
+}
+
+```
+
+
+
+##### Pojo
+
+###### Admin.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/pojo/Admin.java
+
+```java
+package com.mszlu.blog.admin.pojo;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
+
+@Data
+public class Permission {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private String name;
+
+    private String path;
+
+    private String description;
+}
+
+
+```
+
+###### 
+
+### 权限认证
+
+#### code
+
+##### Service
+
+###### AuthService.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/AuthService.java
+
+```java
+package com.mszlu.blog.admin.service;
+
+import com.mszlu.blog.admin.mapper.AdminMapper;
+import com.mszlu.blog.admin.pojo.Admin;
+import com.mszlu.blog.admin.pojo.Permission;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.List;
+
+@Service
+@Slf4j
+public class AuthService {
+
+    @Autowired
+    private AdminService adminService;
+
+    public boolean auth(HttpServletRequest request, Authentication authentication){
+  //权限认证，请求路径
+        String requestURI = request.getRequestURI();
+        log.info("request url:{}", requestURI);
+        //true代表放行 false 代表拦截
+        Object principal = authentication.getPrincipal();
+        if (principal == null || "anonymousUser".equals(principal)){
+            //未登录
+            return false;
+        }
+        UserDetails userDetails = (UserDetails) principal;
+        String username = userDetails.getUsername();
+        Admin admin = adminService.findAdminByUserName(username);
+        if (admin == null){
+            return false;
+        }
+        if (admin.getId() == 1){
+            //认为是超级管理员
+            return true;
+        }
+        List<Permission> permissions = adminService.findPermissionsByAdminId(admin.getId());
+        requestURI = StringUtils.split(requestURI,'?')[0];
+        for (Permission permission : permissions) {
+            if (requestURI.equals(permission.getPath())){
+                log.info("权限通过");
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+
+
+?
+
+```java
+package com.mszlu.blog.admin.service;
+
+import org.springframework.security.core.GrantedAuthority;
+
+public class MySimpleGrantedAuthority implements GrantedAuthority {
+    private String authority;
+    private String path;
+
+    public MySimpleGrantedAuthority(){}
+
+    public MySimpleGrantedAuthority(String authority){
+        this.authority = authority;
+    }
+
+    public MySimpleGrantedAuthority(String authority,String path){
+        this.authority = authority;
+        this.path = path;
+    }
+
+    @Override
+    public String getAuthority() {
+        return authority;
+    }
+
+    public String getPath() {
+        return path;
+    }
+}
+
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--MyBatis配置文件-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mszlu.blog.admin.mapper.PermissionMapper">
+
+    <select id="findPermissionsByAdminId" parameterType="long" resultType="com.mszlu.blog.admin.pojo.Permission">
+        select * from ms_permission where id in (select permission_id from ms_admin_permission where admin_id=#{adminId})
+    </select>
+</mapper>
+
+```
+
+
+
+
+
+# 部署
+
+将域名注册，备案，部署相关

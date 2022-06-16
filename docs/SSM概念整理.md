@@ -216,7 +216,7 @@ constructor：
 
 
 
-## mybatis注意点
+## Mybatis注意点
 
 mybatis中连接完数据库、定义mapper接口并实现mapper接口中的sql语句、绑定mybatis的配置文件sqlSessionFactory实例化、
 
@@ -368,12 +368,96 @@ controller调service层
 
 
 
+### 在Mybatis-plus中如何使用分类插件
+
+内置分页插件：基于 Mybatis 物理分页，开发者无需关心具体操作，配置好插件之后，写分页等同于普通List查询。
+
+
+
+步骤：
+
+**创建配置类MyBatisPlusConfig**
+
+1.添加配置类注解@Configuration。
+
+2.需要扫描**mapper接口**所在的包（主类中的注解移过来）
+
+3.配置分页插件（需要注解@Bean）
+
+```java
+//1.添加配置类注解@Configuration
+@Configuration
+//2.需要扫描**mapper接口**所在的包（主类中的注解移过来）
+@MapperScan("nuc.guigu.zwj.mybatisplus.mapper")
+public class MyBatisPlusConfig {
+    //3.配置分页插件
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+   //数据库类型是MySql，因此参数填写DbType.MYSQL
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
+        return interceptor;
+    }
+}
+```
+
+
+
+**创建一个测试类MyBatisPlusTest**
+
+1.测试类记得添加注解@SpringBootTest
+
+2.对使用的mapper组件进行自动装配，添加注解@Autowired
+
+```java
+@Autowired
+UserMapper userMapper;
+```
+
+3.测试方法里
+
+userMapper方法里有一个selectPage（），这个方法参数有两个，第一个是Page类型的（分页对象），第二个是Wapper类型的，因此我们创建这两个对象。
+
+Page类的泛型为我们操作的实体类对象，参数为当前页的页码（current），个每页显示的条数（size），语句为
+
+```java
+Page<User> page = new Page<>(2,3);
+```
+
+第二个参数Wapper类型为条件构造器的条件，因为这里查询的是所有数据（即没有条件），所以Wapper类型的数据填null。
+
+```java
+//1.测试类记得添加注解@SpringBootTest
+@SpringBootTest
+public class MyBatisPlusPluginsTest {
+ //2.对使用的mapper组件进行自动装配，添加注解@Autowired
+    @Autowired
+    UserMapper userMapper;
+ 
+    //3.测试方法
+    @Test
+    public void test01(){
+        Page<User> page = new Page<>(2,3);
+        userMapper.selectPage(page,null);
+        System.out.println(page);
+    }
+}
+```
+
+
+
+### Mybatis如何使用分类插件
+
+https://www.jianshu.com/p/8c78d05e4506
+
+
+
 ## 重要的点
 
 - invoke被认为是一种拦截器
-
 - service可以调用dao，也可以调用service（事务传播）
-
 - 声明bean：将对象放入ioc容器（常常要配合包扫描）
   注入bean（也叫自动装配）：为对象注入属性
 - AOP原理是基于动态代理，请求拦截交给动态代理
+- 事务的原理是AOP
+- 
