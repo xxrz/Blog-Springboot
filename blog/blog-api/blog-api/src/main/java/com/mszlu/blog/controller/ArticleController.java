@@ -88,7 +88,7 @@ public class ArticleController {
     }
 
 
-
+    //这个方法用于更新编辑
     @PostMapping("{id}")
     public Result articleById(@PathVariable("id") Long articleId){
         return articleService.findArticleById(articleId);

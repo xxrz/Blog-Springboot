@@ -196,7 +196,7 @@
             that.comment.content = ''
             that.comments.unshift(data.data);
             that.commentCountsIncrement();
-            that.getCommentsByArticle();
+
 
           }else{
                that.$message({type: 'error', message: data.msg, showClose: true})

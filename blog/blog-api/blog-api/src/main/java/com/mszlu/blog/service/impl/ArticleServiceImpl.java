@@ -168,9 +168,10 @@ public class ArticleServiceImpl implements ArticleService {
          * 3. 标签  要将标签加入到 关联列表当中
          * 4. body 内容存储 article bodyId
          */
-        Article article = new Article();
+        Article article;
         boolean isEdit = false;
         if (articleParam.getId() != null){
+            //更新
             article = new Article();
             article.setId(articleParam.getId());
             article.setTitle(articleParam.getTitle());

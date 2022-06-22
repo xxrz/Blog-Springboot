@@ -1061,6 +1061,8 @@ service层主要是写业务逻辑方法，service层经常要调用dao层（也
 
 多表查询需要利用mybatis的xml配置文件实现
 
+只要是service的实现类都需要注入到spring中
+
 
 
 #### 文章分类服务接口：CategoryService
@@ -5188,7 +5190,7 @@ src/main/java/com/mszlu/blog/service/impl/CommentsServiceImpl.java
 
 ```
 
-
+#### 测试
 
 ##### Bug修正
 
@@ -5204,6 +5206,70 @@ public class CommentVo  {
 //    @JsonSerialize(using = ToStringSerializer.class)
     private String id;
 ```
+
+
+
+评论实时刷新的问题
+
+最好不要改前端
+
+blog/blog-ui/src/views/blog/BlogView.vue
+
+```vue
+        that.comment.article.id = that.article.id
+        let parms = {articleId:that.article.id,content:that.comment.content}
+        publishComment(parms,this.$store.state.token).then(data => {
+          if(data.success){
+            that.$message({type: 'success', message: '评论成功', showClose: true})
+            that.comment.content = ''
+            that.comments.unshift(data.data);
+            that.commentCountsIncrement();
+<!--不要这句-->
+			that.getCommentsByArticle();
+
+
+
+```
+
+
+
+后端修改返回值
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/service/impl/CommentsServiceImpl.java
+
+```java
+    @Override
+    public Result comment(CommentParam commentParam) {
+        SysUser sysUser = UserThreadLocal.get();
+        Comment comment = new Comment();
+        comment.setArticleId(commentParam.getArticleId());
+        comment.setAuthorId(sysUser.getId());
+        comment.setContent(commentParam.getContent());
+        comment.setCreateDate(System.currentTimeMillis());
+        Long parent = commentParam.getParent();
+        if (parent == null || parent == 0) {
+            comment.setLevel(1);
+        }else{
+            comment.setLevel(2);
+        }
+        comment.setParentId(parent == null ? 0 : parent);
+        Long toUserId = commentParam.getToUserId();
+        comment.setToUid(toUserId == null ? 0 : toUserId);
+        this.commentMapper.insert(comment);
+        UpdateWrapper<Article> updateWrapper = Wrappers.update();
+        updateWrapper.eq("id",comment.getArticleId());
+        updateWrapper.setSql(true,"comment_counts=comment_counts+1");
+        this.articleMapper.update(null,updateWrapper);
+
+        //修改评论实时刷新
+        CommentVo commentVo = copy(comment);
+        return Result.success(commentVo);
+        //原来是
+        //return Result.success(null);
+    }
+```
+
+
 
 
 
@@ -5698,6 +5764,128 @@ public class ArticleTag {
 
 
 #### 测试
+
+
+
+### 编辑文章
+
+只有当当前登录的id为发布文章的id的时候，才会出现编辑按钮
+
+**BlogView.vue**
+
+blog/blog-ui/src/views/blog/BlogView.vue
+
+```vue
+<el-button
+              v-if="this.article.author.id == this.$store.state.id"
+              @click="editArticle()"
+              style="position: absolute;left: 60%;"
+              size="mini"
+              round
+              icon="el-icon-edit">编辑</el-button>
+```
+
+**ArticleController.java**
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/controller/ArticleController.java
+
+```java
+//这个方法用于更新编辑
+    @PostMapping("{id}")
+    public Result articleById(@PathVariable("id") Long articleId){
+        return articleService.findArticleById(articleId);
+    }
+```
+
+**ArticleServiceImpl.java**
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+@Override
+    public Result publish(ArticleParam articleParam) {
+        //此接口 要加入到登录拦截当中
+        SysUser sysUser = UserThreadLocal.get();
+        /**
+         * 1. 发布文章 目的 构建Article对象
+         * 2. 作者id  当前的登录用户
+         * 3. 标签  要将标签加入到 关联列表当中
+         * 4. body 内容存储 article bodyId
+         */
+        Article article;
+        boolean isEdit = false;
+        if (articleParam.getId() != null){
+            //更新
+            article = new Article();
+            article.setId(articleParam.getId());
+            article.setTitle(articleParam.getTitle());
+            article.setSummary(articleParam.getSummary());
+            article.setCategoryId(Long.parseLong(articleParam.getCategory().getId()));
+            articleMapper.updateById(article);
+            isEdit = true;
+        }else{
+            article = new Article();
+            article.setAuthorId(sysUser.getId());
+            article.setWeight(Article.Article_Common);
+            article.setViewCounts(0);
+            article.setTitle(articleParam.getTitle());
+            article.setSummary(articleParam.getSummary());
+            article.setCommentCounts(0);
+            article.setCreateDate(System.currentTimeMillis());
+            article.setCategoryId(Long.parseLong(articleParam.getCategory().getId()));
+            //插入之后 会生成一个文章id
+            this.articleMapper.insert(article);
+        }
+        //tag
+        List<TagVo> tags = articleParam.getTags();
+        if (tags != null){
+            for (TagVo tag : tags) {
+                Long articleId = article.getId();
+                if (isEdit){
+                    //先删除
+                    LambdaQueryWrapper<ArticleTag> queryWrapper = Wrappers.lambdaQuery();
+                    queryWrapper.eq(ArticleTag::getArticleId,articleId);
+                    articleTagMapper.delete(queryWrapper);
+                }
+                ArticleTag articleTag = new ArticleTag();
+                articleTag.setTagId(Long.parseLong(tag.getId()));
+                articleTag.setArticleId(articleId);
+                articleTagMapper.insert(articleTag);
+            }
+        }
+        //body
+        if (isEdit){
+            ArticleBody articleBody = new ArticleBody();
+            articleBody.setArticleId(article.getId());
+            articleBody.setContent(articleParam.getBody().getContent());
+            articleBody.setContentHtml(articleParam.getBody().getContentHtml());
+            LambdaUpdateWrapper<ArticleBody> updateWrapper = Wrappers.lambdaUpdate();
+            updateWrapper.eq(ArticleBody::getArticleId,article.getId());
+            articleBodyMapper.update(articleBody, updateWrapper);
+        }else {
+            ArticleBody articleBody = new ArticleBody();
+            articleBody.setArticleId(article.getId());
+            articleBody.setContent(articleParam.getBody().getContent());
+            articleBody.setContentHtml(articleParam.getBody().getContentHtml());
+            articleBodyMapper.insert(articleBody);
+
+            article.setBodyId(articleBody.getId());
+            articleMapper.updateById(article);
+        }
+        Map<String,String> map = new HashMap<>();
+        map.put("id",article.getId().toString());
+
+        if (isEdit){
+            //发送一条消息给rocketmq 当前文章更新了，更新一下缓存吧
+            ArticleMessage articleMessage = new ArticleMessage();
+            articleMessage.setArticleId(article.getId());
+//            rocketMQTemplate.convertAndSend("blog-update-article",articleMessage);
+        }
+        return Result.success(map);
+    }
+```
+
+
 
 
 
@@ -7174,6 +7362,72 @@ private String id;
 
 
 
+### 缓存一致性问题
+
+之前在文章列表读取，最新文章等接口的时候我们加了缓存，但是加了缓存会有一些问题，当我们修改或者用户浏览了文章，那么最新的修改和文章的浏览数量无法及时的更新，得等到缓存失效时间过去，那么应该怎么做呢？
+
+这里我们采用RocketMQ来解决这个问题。
+
+也就是在RocketMQ队列中修改缓存的数据。
+
+> 文章哪进行修改了，缓存也跟着修改
+
+
+
+也可以使用多线程
+
+
+
+
+
+### 搜索
+
+前端就不说了
+
+后端：
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/controller/ArticleController.java
+
+```java
+    //restful风格
+    @PostMapping("search")
+    //用于读取 Request 请求（可能是 POST,PUT,DELETE,GET 请求）的 body部分
+    // 并且**Content-Type 为 application/json** 格式的数据，
+    // 接收到数据之后会自动将数据绑定到 Java 对象上去。
+    public Result search(@RequestBody ArticleParam articleParam){
+        //写一个搜索接口
+        String search = articleParam.getSearch();
+        return articleService.searchArticle(search);
+    }
+```
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/service/ArticleService.java
+
+```java
+Result searchArticle(String search);
+```
+
+blog/blog-api/blog-api/src/main/java/com/mszlu/blog/service/impl/ArticleServiceImpl.java
+
+```java
+ @Override
+    public Result searchArticle(String search) {
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(Article::getViewCounts);
+        queryWrapper.select(Article::getId,Article::getTitle);
+        queryWrapper.like(Article::getTitle,search);
+        //select id,title from article order by view_counts desc limit 5
+        List<Article> articles = articleMapper.selectList(queryWrapper);
+
+        return Result.success(copyList(articles,false,false));
+    }
+
+```
+
+
+
+
+
 # BlOG-Admin
 
 做一个后台 用springsecurity 做一个权限系统，对工作帮助比较大
@@ -7481,6 +7735,10 @@ CREATE TABLE `ms_admin_permission`  (
 
 ### 权限管理
 
+实现对权限表的增删改查，不涉及管理员
+
+
+
 #### 接口分析
 
 ##### 传入参数
@@ -7502,15 +7760,6 @@ CREATE TABLE `ms_admin_permission`  (
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/controller/AdminController.java
 
 ```java
-package com.mszlu.blog.admin.controller;
-
-import com.mszlu.blog.admin.model.params.PageParam;
-import com.mszlu.blog.admin.pojo.Permission;
-import com.mszlu.blog.admin.service.PermissionService;
-import com.mszlu.blog.admin.vo.Result;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("admin")
 public class AdminController {
@@ -7543,6 +7792,14 @@ public class AdminController {
 
 ```
 
+> **@RequestBody**：
+>
+> 将前端发送过来固定格式的数据xml或json封装到对应的JavaBean对象。也就是从put 或者post请求中获得请求体的内容
+>
+> **@PathVariable** ：
+>
+> 取出URI模板中的变量作为参数
+
 
 
 ##### Vo
@@ -7562,7 +7819,8 @@ public class PageParam {
     private Integer currentPage;
 
     private Integer pageSize;
-
+	
+    //权限名称
     private String queryString;
 }
 
@@ -7639,22 +7897,6 @@ public class PageResult<T> {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/PermissionService.java
 
 ```java
-package com.mszlu.blog.admin.service;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mszlu.blog.admin.controller.AdminController;
-import com.mszlu.blog.admin.mapper.PermissionMapper;
-import com.mszlu.blog.admin.model.params.PageParam;
-import com.mszlu.blog.admin.pojo.Permission;
-import com.mszlu.blog.admin.vo.PageResult;
-import com.mszlu.blog.admin.vo.Result;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import sun.security.krb5.internal.PAData;
-
-
 @Service
 public class PermissionService {
     @Autowired
@@ -7704,17 +7946,10 @@ public class PermissionService {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/mapper/PermissionMapper.java
 
 ```java
-package com.mszlu.blog.admin.mapper;
-
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.mszlu.blog.admin.pojo.Permission;
-
 public interface PermissionMapper extends BaseMapper<Permission> {
 }
 
 ```
-
-
 
 
 
@@ -7725,17 +7960,11 @@ public interface PermissionMapper extends BaseMapper<Permission> {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/pojo/Permission.java
 
 ```java
-package com.mszlu.blog.admin.pojo;
-
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import lombok.Data;
-
 @Data
 public class Permission {
 
     @TableId(type = IdType.AUTO)
-    //没几个管理员，所以用long，自增
+    //这里了是权限的id吧，因为没几个，所以用long，自增，不用什么分布式id
     private Long id;
 
     private String name;
@@ -7754,6 +7983,8 @@ public class Permission {
 
 ![image-20220617023642322](appendix/Blog细节/image-20220617023642322.png)
 
+
+
 ### Security集成
 
 #### 配置
@@ -7768,40 +7999,23 @@ public class Permission {
 
 ```
 
-
+>已生成的root账号密码为：
+>
+>root: admin
+>
+>密码：123456
 
 ##### SecurityConfig.java
 
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/config/SecurityConfig.java
 
 ```java
-package com.mszlu.blog.admin.config;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
+    //密码策略：Bcrypt
+    //对密码进行加密
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();
     }
@@ -7824,15 +8038,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/js/**").permitAll()
                 .antMatchers("/plugins/**").permitAll()
-                .antMatchers("/admin/**").access("@authService.auth(request,authentication)") //自定义service 来去实现实时的权限认证
-                .antMatchers("/pages/**").authenticated()
+            //permitAll，对这些资源放行，不需要登录就可以访问
+                
+            .antMatchers("/admin/**").access("@authService.auth(request,authentication)") //自定义service 来去实现实时的权限认证
+            //此处不能放行了，需要认证了，通过authService进行认证，access的访问认证方式，为防止后面的permitAll不生效，需要添加/admin，因为这样就可以将所有需要拦截的路径放在admin下，其他不拦截
+                .antMatchers("/pages/**").authenticated()//authenticated表示只要认证通过就可以
                 .and().formLogin()
-                .loginPage("/login.html") //自定义的登录页面
+                .loginPage("/login.html") //自定义的登录页面，
                 .loginProcessingUrl("/login") //登录处理接口
                 .usernameParameter("username") //定义登录时的用户名的key 默认为username
                 .passwordParameter("password") //定义登录时的密码key，默认是password
-                .defaultSuccessUrl("/pages/main.html")
-                .failureUrl("/login.html")
+                .defaultSuccessUrl("/pages/main.html")//登录成功跳转到这个页面
+                .failureUrl("/login.html")//失败
                 .permitAll() //通过 不拦截，更加前面配的路径决定，这是指和登录表单相关的接口 都通过
                 .and().logout() //退出登录配置
                 .logoutUrl("/logout") //退出登录接口
@@ -7841,17 +8058,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .httpBasic()
                 .and()
-                .csrf().disable() //csrf关闭 如果自定义登录 需要关闭
-                .headers().frameOptions().sameOrigin();
+                .csrf().disable() //csrf关闭 如果自定义登录 需要关闭，关闭csrf功能:跨站请求伪造,默认只能通过post方式提交logout请求
+                .headers().frameOptions().sameOrigin();//支持iframe页面嵌套
     }
 }
 ```
 
 
 
-
-
 ### 登录验证
+
+实现管理员的登录认证
 
 #### code
 
@@ -7862,22 +8079,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/SecurityUserService.java
 
 ```java
-package com.mszlu.blog.admin.service;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.mszlu.blog.admin.mapper.AdminMapper;
-import com.mszlu.blog.admin.pojo.Admin;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 
 @Component
 @Slf4j
@@ -7893,6 +8094,8 @@ public class SecurityUserService implements UserDetailsService {
         if (adminUser == null){
             throw new UsernameNotFoundException("用户名不存在");
         }
+        //这部分按理说应该检查密码对不对，但是我们不自己进行处理，让spring为我们完成
+        //认证授权列表为空，因为我们不在这做认证授权
         ArrayList<GrantedAuthority> authorities = new ArrayList<>();
         UserDetails userDetails = new User(username,adminUser.getPassword(), authorities);
         //剩下的认证 就由框架帮我们完成
@@ -7914,18 +8117,6 @@ public class SecurityUserService implements UserDetailsService {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/AdminService.java
 
 ```java
-package com.mszlu.blog.admin.service;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.mszlu.blog.admin.mapper.AdminMapper;
-import com.mszlu.blog.admin.mapper.PermissionMapper;
-import com.mszlu.blog.admin.pojo.Admin;
-import com.mszlu.blog.admin.pojo.Permission;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
 @Service
 public class AdminService {
 
@@ -7941,10 +8132,6 @@ public class AdminService {
         return adminUser;
     }
 
-    public List<Permission> findPermissionsByAdminId(Long adminId){
-        return permissionMapper.findPermissionsByAdminId(adminId);
-    }
-
 }
 ```
 
@@ -7957,20 +8144,9 @@ public class AdminService {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/mapper/AdminMapper.java
 
 ```java
-package com.mszlu.blog.admin;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class AdminApp {
-
-    public static void main(String[] args) {
-        SpringApplication.run(AdminApp.class,args);
-    }
+public interface AdminMapper extends BaseMapper<Admin> {
 }
-
 ```
 
 
@@ -7982,26 +8158,17 @@ public class AdminApp {
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/pojo/Admin.java
 
 ```java
-package com.mszlu.blog.admin.pojo;
-
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import lombok.Data;
-
 @Data
 public class Permission {
-
+	//后台管理员不需要用分布式id进行访问
     @TableId(type = IdType.AUTO)
     private Long id;
-
     private String name;
 
     private String path;
 
     private String description;
 }
-
-
 ```
 
 ###### 
@@ -8016,24 +8183,19 @@ public class Permission {
 
 blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/service/AuthService.java
 
+**思路**
+
+首先在通过admin找到对应的admin id
+
+再在admin_permission中，找到admin所拥有的权限的id
+
+再在permission中，找到对应权限的路径，再进行一个比对
+
+如果有，则认证通过；
+
+如果没有，则认证失败
+
 ```java
-package com.mszlu.blog.admin.service;
-
-import com.mszlu.blog.admin.mapper.AdminMapper;
-import com.mszlu.blog.admin.pojo.Admin;
-import com.mszlu.blog.admin.pojo.Permission;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.List;
-
 @Service
 @Slf4j
 public class AuthService {
@@ -8046,6 +8208,7 @@ public class AuthService {
         String requestURI = request.getRequestURI();
         log.info("request url:{}", requestURI);
         //true代表放行 false 代表拦截
+        //要获得对应的admin user,之前登录验证返回的userDetails
         Object principal = authentication.getPrincipal();
         if (principal == null || "anonymousUser".equals(principal)){
             //未登录
@@ -8074,7 +8237,49 @@ public class AuthService {
 }
 ```
 
+对应的联表查询：但是后面没有用这种方式，而是采用了在mapper上用select注解的方式
 
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--MyBatis配置文件-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mszlu.blog.admin.mapper.PermissionMapper">
+
+    <select id="findPermissionsByAdminId" parameterType="long" resultType="com.mszlu.blog.admin.pojo.Permission">
+        select * from ms_permission where id in (select permission_id from ms_admin_permission where admin_id=#{adminId})
+    </select>
+</mapper>
+
+```
+
+
+
+###### AdminService.java
+
+```java
+    public List<Permission> findPermissionByAdminId(Long adminId) {
+        //SELECT * FROM `ms_permission` where id in (select permission_id from ms_admin_permission where admin_id=1)
+        return adminMapper.findPermissionByAdminId(adminId);
+    }
+```
+
+
+
+##### Dao
+
+###### AdminMapper.java
+
+blog/blog-api/blog-admin/src/main/java/com/mszlu/blog/admin/mapper/AdminMapper.java
+
+```java
+public interface AdminMapper extends BaseMapper<Admin> {
+	
+    //此处加了注释，就不用将查询语句放入service层了，也就是前面的那个联表查询的xml文件
+    @Select("SELECT * FROM ms_permission where id in (select permission_id from ms_admin_permission where admin_id=#{adminId})")
+    List<Permission> findPermissionByAdminId(Long adminId);
+}
+```
 
 ?
 
@@ -8110,24 +8315,53 @@ public class MySimpleGrantedAuthority implements GrantedAuthority {
 
 ```
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--MyBatis配置文件-->
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
-<mapper namespace="com.mszlu.blog.admin.mapper.PermissionMapper">
-
-    <select id="findPermissionsByAdminId" parameterType="long" resultType="com.mszlu.blog.admin.pojo.Permission">
-        select * from ms_permission where id in (select permission_id from ms_admin_permission where admin_id=#{adminId})
-    </select>
-</mapper>
-
-```
-
-
-
 
 
 # 部署
 
 将域名注册，备案，部署相关
+
+
+# 亮点总结
+
+1. jwt + redis
+
+   - token令牌的登录方式，访问认证速度快（因为不用Session），session共享，安全性
+
+   - redis做了令牌和用户信息的对应关系
+     - 进一步增加了安全性，二重验证
+     - 登录用户做了缓存
+     - 灵活控制用户的过期（续期，踢掉线）
+
+   
+
+2. threadLocal使用了保存用户信息，请求的线程之内，可以随时获取登录的用户，做了线程隔离
+
+   - 在使用完ThreadLocal之后，做了value的删除，防止了内存泄漏（这面试说强引用，弱引用，明摆着让面试官问JVM嘛）
+
+     
+
+3. 线程安全：CAS,并发线程安全问题
+
+   乐观锁失败会抛一个异常，我们可以捕获异常然后循环执行方法，这个操作我们可以通过aop来实现
+
+   ```sql
+   update table set value = newValue where id=1 and value=oldValue
+   ```
+
+   
+
+4. 线程池应用非常广，面试7个核心参数（对当前的主业务流程无影响的操作，放入线程池执行）
+
+   - 登录时记录日志，记录日志异常不能影响登录
+
+   > 1、核心线程数 2、最大线程数 3、线程存活时间 （针对救急线程）4、时间单位 5、线程工厂6、阻塞队列 7、拒绝策略
+
+
+
+5. 权限系统（重点内容）
+
+   
+
+6. 统一日志记录，统一缓存处理
+
