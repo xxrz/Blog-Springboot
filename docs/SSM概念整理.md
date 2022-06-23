@@ -101,13 +101,13 @@ public class User {
 
 > 主要注解：
 >
-> @Comonent：在实体类。这个类被Spring接管了，注册到了容器中
+> @Comonent：在实体类。这个类被Spring接管了，注册到了容器中。【标注的是类】
 >
-> @Configuration：在配置类。代表这是一个配置类
+> @Configuration：在配置类。代表这是一个配置类。【标注的是类】
 >
 > ​	@ComponentScan("com.ys.pojo")
 >
-> ​	@Bean：注册一个bean，相当于之前的bean标签
+> ​	@Bean：注册一个bean，相当于之前的bean标签。【标注的是方法】
 > ​    //方法名字相当于之前bean内的id属性
 > ​    //返回值相当于class属性
 > ​    //<bean id="cat1" class="com.kuang.pojo.Cat"/>
@@ -452,6 +452,76 @@ https://www.jianshu.com/p/8c78d05e4506
 
 
 
+## restful
+
+### 概念
+
+Restful就是一个资源定位及资源操作的风格。不是标准也不是协议，只是一种风格。基于这个风格设计的软件可以更简洁，更有层次，更易于实现缓存等机制。
+
+
+
+### 使用
+
+非REST的url：http://../query.action?id=3&type=t01（传递的数据大小有限制）
+
+REST的url风格：http://../query/3/t01[需要服务端指定是什么参数，如示例三]
+
+
+
+@RequestMapping：标注请求的地址路径。
+
+可使用RestFul风格，隐藏参数名传入参数值。如示例三，@PathVariable标注需要传入的参数，并以{}的形式在@RequestMapping说明。
+
+```java
+@RequestMapping("/HelloController")
+public class HelloController {
+
+    // 示例一：
+    //真实访问地址 : 项目名/HelloController/hello
+    @RequestMapping("/hello")
+    public String sayHello(Model model){
+        //向模型model中添加属性msg与值，可以在JSP页面中取出并渲染
+        model.addAttribute("msg","hello,SpringMVC");
+        //web-inf/jsp/hello.jsp 返回视图名称
+        return "hello";
+    }
+    // 示例三：
+        @RequestMapping("/test/{p1}/{p2}")
+//    @GetMapping("/test/{p1}/{p2}")
+    public String test(@PathVariable int p1, @PathVariable int p2, Model model){
+        int result = p1 + p2;
+        model.addAttribute("msg",result);
+
+        return "test"; // 默认页面为转发的方式
+        // return "redirect:/hello"; // 重定向到/hello路径
+    }
+}
+```
+
+
+
+### 相关注解
+
+### 注解
+
+1. `@RequestMapping`一般用来指定controller控制器访问路径吗，例：`@RequestMapping("/restful")`
+
+2. 当请求地址中包含变量时，可以与`@PathVariable`注解一起使用，用来获取参数
+
+3. 可以指定访问的方式（POST, GET, DELETE, PUT ...）,例：`@RequestMapping(value = "/t1/{p1}/{p2}", method = {RequestMethod.POST})`
+
+4. @RequestMapping有一些衍生注解, 如下：
+
+    ```java
+    @GetMapping
+    @PostMapping
+    @PutMapping
+    @DeleteMapping
+    @PatchMapping
+    ```
+
+
+
 ## 重要的点
 
 - invoke被认为是一种拦截器
@@ -460,4 +530,72 @@ https://www.jianshu.com/p/8c78d05e4506
   注入bean（也叫自动装配）：为对象注入属性
 - AOP原理是基于动态代理，请求拦截交给动态代理
 - 事务的原理是AOP
-- 
+- handler就是拦截器
+
+
+
+mybatis的xml文件中，#{}中的变量时从方法中传过来的
+
+```xml
+ <!-- List<Tag> findTagsByArticleId(Long articleId);-->
+    <select id="findTagsByArticleId" parameterType="long" resultType="com.mszlu.blog.dao.pojo.Tag">
+        select id,avatar,tag_name as tagName from ms_tag
+        where id in
+        (select id from ms_article_tag where article_id=#{articleId})
+    </select>
+```
+
+
+
+
+
+## 注解
+
+### 修饰在类上
+
+```java
+@Comonent
+@Configuration
+@Repository(“名称”)：dao层
+@Service(“名称”)：service层
+@Controller(“名称”)：web层
+@ComponentScan("com.ys.pojo") //包扫描
+@ControllerAdvice //拦截所有标注@controller的注解
+```
+
+
+
+### 修饰在方法上
+
+```java
+@Bean //注册一个bean
+@ExceptionHandler(Exception.class) //拦截的异常的类型
+@ResponseBody //返回json数据,不加的话是页面
+```
+
+
+
+### 类的属性（变量）
+
+```java
+@Autowired //注入
+```
+
+
+
+### 类和方法
+
+```java
+@RequestMapping("articles") //路径映射
+@PostMapping("search")
+```
+
+
+
+### 参数（变量）
+
+```java
+@PathVariable("id") //里面的值mybatis中是传入的参数名
+@RequestBody //从请求的body中获取值,一般和PostMapping一起用
+```
+

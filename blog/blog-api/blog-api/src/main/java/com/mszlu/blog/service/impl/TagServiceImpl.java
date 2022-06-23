@@ -36,7 +36,10 @@ public class TagServiceImpl implements TagService {
     }
     @Override
     public List<TagVo> findTagsByArticleId(Long articleId) {
-        //mybatisplus 无法进行多表查询
+        //多表查询不能直接用mybatis-plus
+        //所以还是使用mybatis的xml文件配置
+        //需要从articleTag表中找到文章id和tag的映射关系
+        //再从tag表中拿到所有的tag
         List<Tag> tags = tagMapper.findTagsByArticleId(articleId);
         return copyList(tags);
     }

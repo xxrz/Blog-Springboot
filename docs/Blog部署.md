@@ -28,16 +28,18 @@
 
 2. 域名解析
 
+   >   注意：域名必须备案后才能解析
+
    [参考](https://support.huaweicloud.com/qs-dns/dns_qs_0002.html)
 
    验证：
-
+   
    ```shell
    nslookup -qt=a huaweicloudsite.com
    ```
 
    ![image-20220620025108086](appendix/Blog部署/image-20220620025108086.png)
-
+   
    > 由于我使用的是HECS，所以备案的服务器类型要选择授权码的方式
 
 ## 部署(思路)

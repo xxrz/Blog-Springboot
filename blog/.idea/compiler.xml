@@ -12,9 +12,9 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="blog-admin" target="1.8" />
-      <module name="blog-api" target="1.8" />
-      <module name="blog-parent" target="1.8" />
+      <module name="blog-admin" target="1.5" />
+      <module name="blog-api" target="1.5" />
+      <module name="blog-parent" target="1.5" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

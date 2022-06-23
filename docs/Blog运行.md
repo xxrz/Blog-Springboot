@@ -2,7 +2,7 @@
 
 ## 前端
 
-参考：http://www.1024sky.cn/blog/article/62348
+[参考链接](http://www.1024sky.cn/blog/article/62348)
 
 1. 安装nmp
 

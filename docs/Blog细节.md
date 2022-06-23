@@ -337,7 +337,7 @@ public class BlogApp {
 
 >在MySQL中，
 >
->row_format（dynamic）：每条记录所占用的字节不一定一样（比如varchar），其优点节省空间，缺点增加读取的时间开销。。 
+>row_format（dynamic）：每条记录所占用的字节不一定一样（比如varchar），其优点节省空间，缺点增加读取的时间开销。
 >
 >row_format（fixed）：每条记录所占用的字节一样（比如int），其优点读取快，缺点浪费额外一部分空间。  
 
@@ -345,18 +345,18 @@ public class BlogApp {
 
 #### 系统用户表：ms_sys_user
 
-`id` ：用户id【主键】
-`account`：账号
-`admin`：是否管理员
-`avatar` ：头像
-`create_date`：注册时间
+`id` ：用户id【主键】 bigint(0)
+`account`：账号 varchar
+`admin`：是否管理员 bit(1)
+`avatar` ：头像 varchar
+`create_date`：注册时间 bigint(0)
 `deleted`：是否删除
 `email`：邮箱
-`last_login` ：最后登录时间
-`mobile_phone_number` ：手机号
+`last_login` ：最后登录时间 bigint
+`mobile_phone_number` ：手机号 varchar
 `nickname` ：昵称
-`password` ：密码
-`salt` ：加密盐
+`password` ：密码 varchar(64)
+`salt` ：加密盐 
 `status`：状态
 
 ```sql
@@ -382,11 +382,11 @@ CREATE TABLE `ms_sys_user`  (
 
 #### 管理员表: ms_admin
 
-id：管理员id【主键】(系统用户表的id)
+`id`：管理员id【主键】(系统用户表的id)
 
-username：管理员姓名
+`username`：管理员姓名
 
-password：管理员密码
+`password`：管理员密码
 
 ```sql
 CREATE TABLE `ms_admin`  (
@@ -401,13 +401,13 @@ CREATE TABLE `ms_admin`  (
 
 #### 权限表：ms_permission
 
-id：权限id【主键】
+`id`：权限id【主键】 
 
-name：权限名
+`name`：权限名
 
-path：路径？
+`path`：权限所能访问到的网页
 
-description：描述
+`description`：描述
 
 ```sql
 CREATE TABLE `ms_permission`  (
@@ -423,11 +423,11 @@ CREATE TABLE `ms_permission`  (
 
 #### 管理员权限表：ms_admin_permission
 
-id：管理员权限id【主键】
+`id`：管理员权限id【主键】
 
-admin_id：管理员id
+`admin_id`：管理员id
 
-permission_id：权限id
+`permission_id`：权限id
 
 ```sql
 CREATE TABLE `ms_admin_permission`  (
@@ -444,11 +444,11 @@ CREATE TABLE `ms_admin_permission`  (
 
 #### 文章分类表：ms_category
 
-id ：分类id【主键】
-avatar：头像
-category_name：分类名
+`id `：分类id【主键】
+`avatar`：头像
+`category_name`：分类名
 
-description：描述
+`description`：描述
 
 ```sql
 CREATE TABLE `ms_category`  (
@@ -465,12 +465,12 @@ CREATE TABLE `ms_category`  (
 #### 文章表：ms_article
 
 `id` ：文章id【主键】
-`comment_counts` ：评论数量
+`comment_counts` ：评论数量` int(0)`
 `create_date` ：创建时间
 `summary` ：简介
 `title` ：标题
 `view_counts` ：浏览数量
-`weight`：是否置顶
+`weight`：是否置顶 `int(0)`
 `author_id`：作者id
 `body_id` ：内容id
 `category_id`：类别id
@@ -496,8 +496,8 @@ CREATE TABLE `ms_article`  (
 #### 文章内容表：ms_article_body
 
 `id` ：文章内容id【主键】
-`content`：文章内容
-`content_html` ：？
+`content`：文章内容 `longtext`
+`content_html` ：文章网页
 `article_id`：文章id【索引】
 
 ```sql
@@ -526,16 +526,15 @@ CREATE TABLE `ms_tag`  (
   `tag_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
 ```
 
 
 
 #### 文章标签表：ms_article_tag
 
-id ：文章标签id【主键】
-article_id：文章id【索引】
-tag_id：文章标签id【索引】
+`id` ：文章标签id【主键】
+`article_id`：文章id【索引】
+`tag_id`：文章标签id【索引】
 
 ```sql
 CREATE TABLE `ms_article_tag`  (
@@ -552,19 +551,19 @@ CREATE TABLE `ms_article_tag`  (
 
 #### 文章评论表：ms_comment
 
-id ：评论id【主键】
-content：评论内容
-create_date：评论时间
+`id `：评论id【主键】
+`content`：评论内容
+`create_date`：评论时间
 
-article_id：评论文章id【索引】
+`article_id`：评论文章id【索引】
 
-author_id：谁评论的
+`author_id`：谁评论的
 
-parent_id：盖楼功能对评论的评论进行回复
+`parent_id`：盖楼功能对评论的评论进行回复
 
-to_uid：给谁评论
+`to_uid`：给谁评论
 
-level：评论的是第几层（1级表示最上层的评论，2表示对评论的评论）
+`level`：评论的是第几层（1级表示最上层的评论，2表示对评论的评论）
 
 ```sql
 CREATE TABLE `ms_comment`  (
@@ -786,7 +785,8 @@ public class Comment {
     private String content;
 
     private Long createDate;
-
+	
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long articleId;
 
     private Long authorId;
@@ -1053,7 +1053,11 @@ service层主要是写业务逻辑方法，service层经常要调用dao层（也
 
 【service层不仅可以调dao层，也可以调sevice层，充当service实现类的属性】
 
-> 是不是所有的service实现类的属性都要进行bean注册？
+> 一般应该要实现前端的功能，会返回我们封装的Result
+>
+> 其他的就是自己需要的类型
+
+是不是所有的service实现类的属性都要进行bean注册？是
 
 
 
@@ -1287,7 +1291,7 @@ public interface SysUserService {
 
 
 
-#### 登录服务接口：LoginService
+登录服务接口：LoginService
 
 LoginService.java
 
@@ -1874,6 +1878,7 @@ public class ArticleServiceImpl implements ArticleService {
 ```java
 public interface TagService {
 
+    //不是Result，说明可能是被其他service调用的service,所以controller中也没有相应的函数
     List<TagVo> findTagsByArticleId(Long articleId);
 
     Result hots(int limit);
@@ -1941,9 +1946,9 @@ public class TagServiceImpl implements TagService {
 >   <?xml version="1.0" encoding="UTF-8" ?>
 >   <!--MyBatis配置文件-->
 >   <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
->   
+>               
 >   <mapper namespace="com.mszlu.blog.dao.mapper.TagMapper">
->   
+>               
 >       <!-- List<Tag> findTagsByArticleId(Long articleId);-->
 >       <select id="findTagsByArticleId" parameterType="long" resultType="com.mszlu.blog.dao.pojo.Tag">
 >           <!-- 数据库中的列名为：tag_name as tagName，这样就和类中的属性名一致 -->
@@ -2366,8 +2371,6 @@ public class AllExceptionHandler {
 ![image-20220607232915121](appendix\Blog细节\image-20220607232915121.png)
 
 > AOP
->
-> 
 >
 > @ControllerAdvice 是spring提供的新注解,本质上还是@Component ，是@Controller增强器, 可以对controller中使用到@RequestMapping注解的一下方法做逻辑处理。
 >
@@ -4598,9 +4601,9 @@ public class ThreadPoolConfig {
 }
 ```
 
-> @Configuration可理解为用spring的时候xml里面的<beans>标签。
+> @Configuration可理解为用spring的时候xml里面的<beans>标签，标注类
 >
-> @Bean可理解为用spring的时候xml里面的<bean>标签。
+> @Bean可理解为用spring的时候xml里面的<bean>标签，标注方法
 
 
 
@@ -5209,7 +5212,7 @@ public class CommentVo  {
 
 
 
-评论实时刷新的问题
+**评论实时刷新的问题**
 
 最好不要改前端
 
@@ -7375,8 +7378,6 @@ private String id;
 
 
 也可以使用多线程
-
-
 
 
 

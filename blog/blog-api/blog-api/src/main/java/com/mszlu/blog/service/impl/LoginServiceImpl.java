@@ -39,6 +39,15 @@ public class LoginServiceImpl implements LoginService {
          * 5. token放入redis当中，redis  token：user信息 设置过期时间
          *  (登录认证的时候 先认证token字符串是否合法，去redis认证是否存在)
          */
+
+        /*
+        检查参数是否合法
+        合法然后对密码进行加密，因为数据库中的密码是加密的
+        检查用户名密码是否正确
+        如果不存在，则返回失败
+        如果存在则生成token，返回给前端
+        并存入redis
+         */
         String account = loginParam.getAccount();
         String password = loginParam.getPassword();
         if (StringUtils.isBlank(account) || StringUtils.isBlank(password)){
