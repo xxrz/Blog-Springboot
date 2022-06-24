@@ -2858,7 +2858,7 @@ com\mszlu\blog\utils\JWTUtils.java
 ```java
 public class JWTUtils {
 	
-    //jwtToken是密钥
+    //jwtToken是密钥(盐)
     private static final String jwtToken = "123456Mszlu!@#$$";
 	
     public static String createToken(Long userId){
