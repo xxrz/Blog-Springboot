@@ -1760,7 +1760,7 @@ public interface ArticleService {
      * @return
      */
 
-    List<ArticleVo> listArticlesPage(PageParams pageParams);
+    Result listArticle(PageParams pageParams);
 
 }
 ```
@@ -8172,7 +8172,7 @@ public class Permission {
 }
 ```
 
-###### 
+
 
 ### 权限认证
 
