@@ -28,18 +28,16 @@
 
 2. 域名解析
 
-   >   注意：域名必须备案后才能解析
-
    [参考](https://support.huaweicloud.com/qs-dns/dns_qs_0002.html)
 
    验证：
-   
+
    ```shell
    nslookup -qt=a huaweicloudsite.com
    ```
 
    ![image-20220620025108086](appendix/Blog部署/image-20220620025108086.png)
-   
+
    > 由于我使用的是HECS，所以备案的服务器类型要选择授权码的方式
 
 ## 部署(思路)
@@ -98,7 +96,7 @@ blog/blog-api/pom.xml
 
 [参考码神链接](https://www.mszlu.com/java/blog/11/11.html#%E9%83%A8%E7%BD%B2%E7%9B%B8%E5%85%B3)
 
-
+[编排配置清晰](https://www.jianshu.com/p/ca2ba6fd498b)
 
 ### Docker安装
 
@@ -133,6 +131,8 @@ docker pull mysql:5.7
 ### Docker配置MySQL
 
 创建容器，设置端口映射、目录映射
+
+> 注意重启以后，ip会变...
 
 ```shell
 mkdir -p /mnt/docker/mysql
@@ -247,7 +247,7 @@ docker inspect redis
 blog/blog-api/blog-api/src/main/resources/application-prod.properties
 
 ```properties
-spring.redis.host=172.17.0.3
+spring.redis.host=172.17.0.4
 spring.redis.port=6379
 ```
 
@@ -484,8 +484,10 @@ services:
   app:
     image: app
     container_name: app
-    expose:
-      - "8888"
+    ports:
+     - 8888:8888
+#    expose:
+#      - "8888"
     network_mode: "bridge"
 ```
 
@@ -547,14 +549,14 @@ gzip_comp_level 2;
 gzip_vary off;
 upstream appstream{
      
-        server app:8888;
+        server 192.168.0.158:8888;
 }
 server{
     # 监听端口
     listen  80;
     # 主机名称/地址
     #server_name www.xxurongze.cn xxurongze.cn;
-    server_name 114.115.145.198:8080;
+    server_name 114.115.145.198;
     index   index.html;
     # 前端服务
      location / {
@@ -581,7 +583,7 @@ server{
 如果是ip地址，不是域名的话
 
 ```shell
-    server_name 114.115.145.198:8080;
+    server_name 114.115.145.198;
 ```
 
 
@@ -722,8 +724,6 @@ http://114.115.145.198
 
 
 
-404是你的资源找不到了，看看前端的api配置 ,跨域配置有没有配置好
-
 
 
 ## 服务更新
@@ -748,3 +748,131 @@ http://114.115.145.198
 
 3. 启动docker compose
 
+
+
+
+
+## 其他
+
+### 跨域
+
+![image-20220626024526528](appendix/Blog部署/image-20220626024526528.png)
+
+跨域：后端8888允许前端8080跨域访问
+
+
+
+**查看防火墙**
+
+```shell
+systemctl status firewalld 
+systemctl start firewalld
+systemctl stop firewalld
+```
+
+**查看端口**
+
+```shell
+netstat -ano | grep 9999
+iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+```
+
+
+
+### nginx
+
+[参考链接](https://juejin.cn/post/6844904129987526663)
+
+Nginx是一款轻量级的Web服务器、反向代理服务器
+
+
+
+#### 动静分离
+
+动静分离其实就是 Nginx 服务器将接收到的请求分为**动态请求**和**静态请求**。
+
+静态请求直接从 nginx 服务器所设定的根目录路径去取对应的资源，动态请求转发给真实的后台（前面所说的应用服务器，如图中的Tomcat）去处理。
+
+这样做不仅能给应用服务器减轻压力，将后台api接口服务化，还能将前后端代码分开并行开发和部署。
+
+```conf
+server {  
+        listen       8080;        
+        server_name  localhost;
+
+        location / {
+            root   html; # Nginx默认值
+            index  index.html index.htm;
+        }
+        
+        # 静态化配置，所有静态请求都转发给 nginx 处理，存放目录为 my-project
+        location ~ .*\.(html|htm|gif|jpg|jpeg|bmp|png|ico|js|css)$ {
+            root /usr/local/var/www/my-project; # 静态请求所代理到的根目录
+        }
+        
+        # 动态请求匹配到path为'node'的就转发到8002端口处理
+        location /node/ {  
+            proxy_pass http://localhost:8002; # 充当服务代理
+        }
+}
+```
+
+
+
+#### 正向代理
+
+![image-20220629001405766](appendix/Blog部署/image-20220629001405766.png)
+
+正向代理：
+
+- 客户端知道目标的真实访问地址，目标不知道客户端通过VPN访问
+
+  > nginx 就是充当图中的 proxy。左边的3个 client 在请求时向 nginx 获取内容，server 是感受不到3台 client 存在的。**proxy就充当了3个 client的正向代理**。(与请求方向一致)
+
+
+
+#### 反向代理
+
+![image-20220629000916864](appendix/Blog部署/image-20220629000916864.png)
+
+反向代理：（代购）
+
+- 客户端不知道目标真实的访问地址
+
+  > 在前后端分离的项目中，前端端口为8080，后端端口8888。但没有说客户端去访问服务器的时候还带端口号，这个过程应该对用户来说是不可见的，所以中间加了一层代理，也就是nginx，去实现端口访问。请求就会被转发到8888
+  >
+  > 
+  >
+  > nginx 就是充当图中的 proxy。左边的3个 client 在请求时向 nginx 获取内容，是感受不到3台 server 存在的。**proxy就充当了3个 server 的反向代理**。(与请求方向相反)
+
+
+
+#### 负载均衡
+
+随着业务的不断增长和用户的不断增多，一台服务已经满足不了系统要求了。这个时候就出现了服务器集群。在服务器集群中，Nginx 可以将接收到的客户端请求“均匀地”（严格讲并不一定均匀，可以通过设置权重）分配到这个集群中所有的服务器上。这个就叫做**负载均衡**。
+
+- 分摊服务器集群压力
+
+- 保证客户端访问的稳定性
+
+  ```conf
+  # 负载均衡：设置domain
+  upstream domain {
+      server localhost:8000;
+      server localhost:8001;
+  }
+  server {  
+          listen       8080;        
+          server_name  localhost;
+  
+          location / {
+              # root   html; # Nginx默认值
+              # index  index.html index.htm;
+              
+              proxy_pass http://domain; # 负载均衡配置，请求会被平均分配到8000和8001端口
+              proxy_set_header Host $host:$server_port;
+          }
+  }
+  ```
+
+  
